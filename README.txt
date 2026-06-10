@@ -1,37 +1,25 @@
-DOT. LASER - MVP v6.2
+dot. laser MVP v6.3 - Hotfix cadastro e admin
 
-Mudanças desta versão:
-- Cadastro simplificado: apenas Nome + Tempo de prova (opcional).
-- Campo de nome em maiúsculo automático.
-- Tempo formatado automaticamente ao digitar números.
-- Termo "Token" substituído por "Voucher".
-- Tela de conferência antes da confirmação definitiva.
-- Comprovante com todos os atletas do pedido.
-- QR Code com número de pedido visível no comprovante baixado.
-- Painel administrativo para criar/desativar eventos.
-- Página pública pode receber evento por URL: index.html?event=slug-do-evento.
-- Painel de operação permite filtrar por evento.
+1) No Supabase, rode o arquivo schema-v63.sql no SQL Editor.
 
-Arquivos para subir no GitHub:
+2) No GitHub, substitua/suba estes arquivos:
 - index.html
 - painel.html
 - admin.html
 - login.html
-- schema-v62.sql
+- schema-v63.sql
 - README.txt
 
-Antes de testar:
-1. No Supabase, abra SQL Editor.
-2. Rode o conteúdo de schema-v62.sql.
-3. Suba os arquivos no GitHub.
-4. Aguarde a Vercel atualizar.
+Correções desta versão:
+- Corrige "Erro ao salvar atletas" removendo dependência dos campos extras no insert.
+- Mantém tempo de prova como opcional.
+- Corrige políticas de leitura/criação de eventos para usuários logados.
+- Adiciona botão "Voltar" no painel de eventos.
+- Melhora mensagem de erro na criação de evento.
+- Evita conflito de slug quando o evento já existe.
 
-Acesso:
-- Cadastro do atleta: /index.html
-- Painel operador: /painel.html
-- Eventos/admin: /admin.html
-
-Para criar evento:
-1. Acesse /admin.html logado como operador.
-2. Informe nome, prefixo, valor, data e cidade.
-3. Use o link de cadastro gerado na tabela de eventos.
+Páginas:
+- index.html = cadastro do atleta
+- painel.html = painel operacional
+- admin.html = criação/gestão de eventos
+- login.html = login dos operadores/admin
