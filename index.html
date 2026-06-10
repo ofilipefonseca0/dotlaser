@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>dot. laser | Cadastro de Medalhas</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root { --bg:#080808; --card:#111; --muted:#aaa; --line:#242424; --text:#f5f5f5; --accent:#fff; }
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at top,#1f1f1f,#070707 45%);color:var(--text);min-height:100vh;padding:24px} .wrap{max-width:780px;margin:auto}.logo{font-size:30px;font-weight:700;letter-spacing:-1px}.sub{color:var(--muted);margin:6px 0 24px}.card{background:rgba(17,17,17,.92);border:1px solid var(--line);border-radius:22px;padding:20px;margin:14px 0;box-shadow:0 20px 60px rgba(0,0,0,.35)} label{display:block;margin:12px 0 6px;color:#ddd;font-size:14px} input,select{width:100%;padding:14px;border-radius:14px;border:1px solid #333;background:#090909;color:#fff;font-size:16px} .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{border:0;border-radius:14px;padding:14px 18px;font-size:16px;font-weight:700;cursor:pointer}.primary{background:#fff;color:#000}.ghost{background:#1d1d1d;color:#fff;border:1px solid #333}.danger{background:#2b1010;color:#fff}.athlete{border:1px solid #242424;border-radius:18px;padding:14px;margin:12px 0;background:#0b0b0b}.summary{line-height:1.8}.ok{color:#7CFC98}.warn{color:#ffd36a}.small{font-size:13px;color:#aaa}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.hidden{display:none}.success{background:#0d1c12;border-color:#234b2c}.code{font-size:24px;font-weight:800;letter-spacing:.5px}
+    @media(max-width:650px){.row{grid-template-columns:1fr}body{padding:14px}.card{padding:16px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">dot.</div>
+    <div class="sub">Cadastro para gravação de medalhas</div>
+
+    <div class="card">
+      <div class="row">
+        <div><label>Nome do responsável</label><input id="customerName" placeholder="Seu nome" /></div>
+        <div><label>WhatsApp</label><input id="customerPhone" placeholder="(84) 99999-9999" /></div>
+      </div>
+      <label>E-mail</label><input id="customerEmail" placeholder="email@exemplo.com" />
+    </div>
+
+    <div class="card">
+      <h3>Atletas</h3>
+      <div id="athletes"></div>
+      <button class="btn ghost" onclick="addAthlete()">+ Adicionar outro atleta</button>
+    </div>
+
+    <div class="card">
+      <h3>Benefícios e descontos</h3>
+      <div class="row">
+        <div><label>Cupom de desconto</label><input id="coupon" placeholder="Ex.: DOT10" oninput="calculate()" /></div>
+        <div><label>Token de equipe</label><input id="token" placeholder="Ex.: PULSE-2026-001" oninput="calculate()" /></div>
+      </div>
+      <p class="small">Token de equipe torna a gravação gratuita quando válido.</p>
+    </div>
+
+    <div class="card">
+      <h3>Resumo da compra</h3>
+      <div class="summary" id="summary"></div>
+      <div class="actions">
+        <button class="btn primary" onclick="confirmOrder()">Confirmar cadastro</button>
+      </div>
+      <p class="small">MVP: o pedido será salvo como pendente, gratuito ou pago manualmente. A integração Pix entra na próxima etapa.</p>
+    </div>
+
+    <div id="result" class="card success hidden"></div>
+  </div>
+
+<script>
+const SUPABASE_URL = 'https://tamldzilxnsaoxfpjugr.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbWxkemlseG5zYW94ZnBqdWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODM5MzksImV4cCI6MjA5NjY1OTkzOX0.gZ3gaMpcNXWEPidv2U3mhvMfCMQfvk_aVHQLI_JbEjc';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const EVENT_SLUG = 'evento-teste';
+let basePrice = 29.90;
+let eventId = null;
+let athleteCount = 0;
+let lastCalc = { subtotal:0, discount:0, total:0, payment_status:'pending' };
+
+async function init(){
+  const { data } = await db.from('events').select('*').eq('slug', EVENT_SLUG).single();
+  if(data){ eventId=data.id; basePrice=Number(data.base_price); }
+  addAthlete(); calculate();
+}
+function addAthlete(){
+  athleteCount++;
+  const box=document.createElement('div'); box.className='athlete'; box.id='athlete-'+athleteCount;
+  box.innerHTML=`<h4>Atleta ${athleteCount}</h4><label>Nome na Medalha</label><input class="medalName" placeholder="Ex.: FELIPE FONSECA" oninput="calculate()" /><label>Tempo de Prova</label><input class="raceTime" placeholder="Ex.: 01:52:38" oninput="calculate()" />${athleteCount>1?'<div class="actions"><button class="btn danger" onclick="removeAthlete('+athleteCount+')">Remover atleta</button></div>':''}`;
+  document.getElementById('athletes').appendChild(box); calculate();
+}
+function removeAthlete(n){ document.getElementById('athlete-'+n)?.remove(); calculate(); }
+function getAthletes(){
+  return [...document.querySelectorAll('.athlete')].map((el,i)=>({
+    athlete_index:i+1,
+    medal_name:el.querySelector('.medalName').value.trim().toUpperCase(),
+    race_time:el.querySelector('.raceTime').value.trim()
+  })).filter(a=>a.medal_name && a.race_time);
+}
+async function calculate(){
+  const qty=Math.max(1,document.querySelectorAll('.athlete').length);
+  const subtotal=qty*basePrice;
+  let discount=0, status='pending', msg='';
+  const coupon=document.getElementById('coupon').value.trim().toUpperCase();
+  const token=document.getElementById('token').value.trim().toUpperCase();
+  if(token){
+    const { data:t } = await db.from('team_tokens').select('*').eq('token',token).eq('is_active',true).maybeSingle();
+    if(t && t.used_count < t.max_uses){ discount=subtotal; status='free'; msg=`<span class="ok">Token válido: ${t.team_name}</span>`; }
+    else msg='<span class="warn">Token não encontrado ou sem usos disponíveis.</span>';
+  } else if(coupon){
+    const { data:c } = await db.from('coupons').select('*').eq('code',coupon).eq('is_active',true).maybeSingle();
+    if(c){
+      if(c.discount_type==='free'){ discount=subtotal; status='free'; }
+      if(c.discount_type==='percent') discount=subtotal*(Number(c.discount_value)/100);
+      if(c.discount_type==='fixed') discount=Number(c.discount_value);
+      msg=`<span class="ok">Cupom aplicado: ${c.code}</span>`;
+    } else msg='<span class="warn">Cupom não encontrado.</span>';
+  }
+  const total=Math.max(0,subtotal-discount);
+  if(total===0) status='free';
+  lastCalc={subtotal,discount,total,payment_status:status};
+  document.getElementById('summary').innerHTML=`Quantidade: <strong>${qty}</strong><br>Valor unitário: <strong>R$ ${basePrice.toFixed(2).replace('.',',')}</strong><br>Subtotal: <strong>R$ ${subtotal.toFixed(2).replace('.',',')}</strong><br>Desconto: <strong>R$ ${discount.toFixed(2).replace('.',',')}</strong><br>Total: <strong>R$ ${total.toFixed(2).replace('.',',')}</strong><br>${msg}`;
+}
+function orderCode(){ return 'DOT-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random()*900000); }
+async function confirmOrder(){
+  await calculate();
+  const athletes=getAthletes();
+  if(!athletes.length){ alert('Preencha pelo menos um atleta com nome e tempo.'); return; }
+  const code=orderCode();
+  const orderPayload={ order_code:code, event_id:eventId, customer_name:customerName.value.trim(), customer_phone:customerPhone.value.trim(), customer_email:customerEmail.value.trim(), coupon_code:coupon.value.trim().toUpperCase(), team_token:token.value.trim().toUpperCase(), subtotal:lastCalc.subtotal, discount:lastCalc.discount, total:lastCalc.total, payment_status:lastCalc.payment_status };
+  const { data:order, error } = await db.from('orders').insert(orderPayload).select().single();
+  if(error){ alert('Erro ao salvar pedido: '+error.message); return; }
+  const athleteRows=athletes.map(a=>({...a, order_id:order.id}));
+  const { error:athErr } = await db.from('athletes').insert(athleteRows);
+  if(athErr){ alert('Pedido criado, mas erro ao salvar atletas: '+athErr.message); return; }
+  result.classList.remove('hidden');
+  result.innerHTML=`<div>Cadastro confirmado!</div><div class="code">${code}</div><p>Apresente este código no stand da dot. para localizar sua gravação.</p><p>Status: <strong>${lastCalc.payment_status==='free'?'Gratuito por benefício':'Pendente de pagamento/validação'}</strong></p>`;
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+init();
+</script>
+</body>
+</html>

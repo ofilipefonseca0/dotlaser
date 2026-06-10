@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Painel dot. | Operação</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;background:#070707;color:#f5f5f5;padding:20px}.wrap{max-width:1100px;margin:auto}.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;border-radius:999px;padding:12px 18px;font-weight:800;box-shadow:0 12px 35px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.22s;z-index:9999}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.logo{font-size:28px;font-weight:800}.card{background:#111;border:1px solid #252525;border-radius:18px;padding:16px;margin:14px 0}input,select{padding:14px;border-radius:12px;border:1px solid #333;background:#090909;color:#fff;font-size:16px;width:100%}.grid{display:grid;grid-template-columns:1.5fr .7fr .7fr;gap:10px}.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}.primary{background:#fff;color:#000}.ghost{background:#222;color:#fff;border:1px solid #333}.ok{background:#11391d;color:#fff}.pill{display:inline-block;border:1px solid #333;border-radius:999px;padding:5px 10px;margin:3px;color:#ddd;font-size:13px}.ath{border-top:1px solid #262626;margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.copytext{font-size:20px;font-weight:800}.muted{color:#aaa}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat strong{font-size:24px;display:block}@media(max-width:760px){.grid,.stats{grid-template-columns:1fr}.copytext{font-size:17px}}
+  </style>
+</head>
+<body>
+<div id="toast" class="toast">Copiado</div>
+<div class="wrap">
+  <div class="top"><div><div class="logo">dot. painel</div><div class="muted">Busca rápida para operadores</div></div><button class="btn ghost" onclick="loadOrders()">Atualizar</button></div>
+  <div class="card stats" id="stats"></div>
+  <div class="card"><div class="grid"><input id="q" placeholder="Buscar por pedido, nome, telefone ou tempo" oninput="render()"/><select id="pay" onchange="render()"><option value="">Todos pagamentos</option><option value="pending">Pendente</option><option value="paid">Pago</option><option value="free">Gratuito</option></select><select id="eng" onchange="render()"><option value="">Todas gravações</option><option value="pending">Pendente</option><option value="partial">Parcial</option><option value="completed">Concluído</option></select></div></div>
+  <div id="list"></div>
+</div>
+<script>
+const SUPABASE_URL='https://tamldzilxnsaoxfpjugr.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXAiOiJ0YW1sZHppbHhuc2FveGZwanVnciIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzgxMDgzOTM5LCJleHAiOjIwOTY2NTk5Mzl9.invalid';
+// Corrigir automaticamente com a chave real abaixo:
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbWxkemlseG5zYW94ZnBqdWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODM5MzksImV4cCI6MjA5NjY1OTkzOX0.gZ3gaMpcNXWEPidv2U3mhvMfCMQfvk_aVHQLI_JbEjc';
+const db=supabase.createClient(SUPABASE_URL,KEY);
+let rows=[];
+async function loadOrders(){
+ const {data,error}=await db.from('orders').select('*, athletes(*)').order('created_at',{ascending:false}).limit(300);
+ if(error){list.innerHTML='<div class="card">Erro: '+error.message+'</div>';return}
+ rows=data||[]; render();
+}
+function render(){
+ const term=q.value.toLowerCase(); const payv=pay.value; const engv=eng.value;
+ let filtered=rows.filter(o=>{
+   const txt=[o.order_code,o.customer_name,o.customer_phone,o.payment_status,o.engraving_status,...(o.athletes||[]).flatMap(a=>[a.medal_name,a.race_time])].join(' ').toLowerCase();
+   return (!term||txt.includes(term)) && (!payv||o.payment_status===payv) && (!engv||o.engraving_status===engv);
+ });
+ stats.innerHTML=`<div class="stat card"><strong>${rows.length}</strong><span>Pedidos</span></div><div class="stat card"><strong>${rows.filter(o=>o.payment_status==='pending').length}</strong><span>Pendentes</span></div><div class="stat card"><strong>${rows.filter(o=>o.payment_status==='free'||o.payment_status==='paid').length}</strong><span>Liberados</span></div><div class="stat card"><strong>${rows.filter(o=>o.engraving_status==='completed').length}</strong><span>Gravados</span></div>`;
+ list.innerHTML=filtered.map(orderCard).join('') || '<div class="card">Nenhum pedido encontrado.</div>';
+}
+function orderCard(o){
+ return `<div class="card"><div><strong>${o.order_code}</strong> <span class="pill">Pagamento: ${o.payment_status}</span> <span class="pill">Gravação: ${o.engraving_status}</span> <span class="pill">Total R$ ${Number(o.total).toFixed(2).replace('.',',')}</span></div><div class="muted">${o.customer_name||''} ${o.customer_phone||''}</div>${(o.athletes||[]).sort((a,b)=>a.athlete_index-b.athlete_index).map(a=>`<div class="ath"><div><div class="copytext">${a.engraving_text}</div><div class="muted">Atleta ${a.athlete_index} ${a.engraved?'• gravado':''}</div></div><div><button class="btn primary" onclick="copy('${a.engraving_text.replace(/'/g,"\\'")}')">Copiar</button> <button class="btn ok" onclick="markAthlete('${o.id}','${a.id}')">Marcar gravado</button></div></div>`).join('')}<div style="margin-top:12px"><button class="btn ghost" onclick="setPaid('${o.id}')">Marcar pago</button> <button class="btn ghost" onclick="completeOrder('${o.id}')">Concluir pedido</button></div></div>`
+}
+async function copy(t){
+ try{
+   await navigator.clipboard.writeText(t);
+   showToast('Copiado para gravação');
+ }catch(e){
+   showToast('Não foi possível copiar');
+ }
+}
+function showToast(msg){
+ const el=document.getElementById('toast');
+ el.textContent=msg;
+ el.classList.add('show');
+ clearTimeout(window.__toastTimer);
+ window.__toastTimer=setTimeout(()=>el.classList.remove('show'),1600);
+}
+async function setPaid(id){await db.from('orders').update({payment_status:'paid',updated_at:new Date().toISOString()}).eq('id',id); await loadOrders()}
+async function markAthlete(orderId,athleteId){
+ const now=new Date().toISOString();
+ const {error:updateError}=await db.from('athletes').update({engraved:true,engraved_at:now}).eq('id',athleteId);
+ if(updateError){showToast('Erro ao marcar'); return}
+ await db.from('engraving_logs').insert({order_id:orderId,athlete_id:athleteId,operator_name:'Operador'});
+ const {data:athletes,error:athError}=await db.from('athletes').select('id,engraved').eq('order_id',orderId);
+ if(!athError && athletes){
+   const total=athletes.length;
+   const done=athletes.filter(a=>a.engraved).length;
+   const status=done===0?'pending':(done===total?'completed':'partial');
+   await db.from('orders').update({engraving_status:status,updated_at:now}).eq('id',orderId);
+ }
+ showToast('Marcado como gravado');
+ await loadOrders();
+}
+async function completeOrder(id){await db.from('orders').update({engraving_status:'completed',updated_at:new Date().toISOString()}).eq('id',id); await loadOrders()}
+loadOrders(); setInterval(loadOrders,15000);
+</script>
+</body>
+</html>
