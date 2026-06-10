@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;background:#070707;color:#f5f5f5;padding:20px}.wrap{max-width:1100px;margin:auto}.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;border-radius:999px;padding:12px 18px;font-weight:800;box-shadow:0 12px 35px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.22s;z-index:9999}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.logo{font-size:28px;font-weight:800}.card{background:#111;border:1px solid #252525;border-radius:18px;padding:16px;margin:14px 0}input,select{padding:14px;border-radius:12px;border:1px solid #333;background:#090909;color:#fff;font-size:16px;width:100%}.grid{display:grid;grid-template-columns:1.5fr .7fr .7fr;gap:10px}.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}.primary{background:#fff;color:#000}.ghost{background:#222;color:#fff;border:1px solid #333}.ok{background:#11391d;color:#fff}.pill{display:inline-block;border:1px solid #333;border-radius:999px;padding:5px 10px;margin:3px;color:#ddd;font-size:13px}.ath{border-top:1px solid #262626;margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.copytext{font-size:20px;font-weight:800}.muted{color:#aaa}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat strong{font-size:24px;display:block}.reader{display:none}.reader.show{display:block}.readerbox{max-width:420px;margin-top:12px;border-radius:16px;overflow:hidden;background:#000}.scan-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}@media(max-width:760px){.grid,.stats{grid-template-columns:1fr}.copytext{font-size:17px}}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;background:#070707;color:#f5f5f5;padding:20px}.wrap{max-width:1100px;margin:auto}.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;border-radius:999px;padding:12px 18px;font-weight:800;box-shadow:0 12px 35px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.22s;z-index:9999}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.logo{font-size:28px;font-weight:800}.card{background:#111;border:1px solid #252525;border-radius:18px;padding:16px;margin:14px 0}input,select{padding:14px;border-radius:12px;border:1px solid #333;background:#090909;color:#fff;font-size:16px;width:100%}.grid{display:grid;grid-template-columns:1.5fr .7fr .7fr;gap:10px}.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}.primary{background:#fff;color:#000}.ghost{background:#222;color:#fff;border:1px solid #333}.ok{background:#11391d;color:#fff}.pill{display:inline-block;border:1px solid #333;border-radius:999px;padding:5px 10px;margin:3px;color:#ddd;font-size:13px}.ath{border-top:1px solid #262626;margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.copytext{font-size:20px;font-weight:800}.muted{color:#aaa}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat strong{font-size:24px;display:block}.reader{display:none}.reader.show{display:block}.readerbox{max-width:420px;margin-top:12px;border-radius:16px;overflow:hidden;background:#000}.scan-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.mini{font-size:12px;color:#aaa}.money{color:#7CFC98}.danger{background:#3b1414;color:#fff}.warn{background:#392b11;color:#fff}@media(max-width:760px){.grid,.stats{grid-template-columns:1fr}.copytext{font-size:17px}}
   </style>
 </head>
 <body>
@@ -15,7 +15,7 @@
 <div class="wrap">
   <div class="top"><div><div class="logo">dot. painel</div><div class="muted">Busca rápida para operadores <span id="userEmail"></span></div></div><div><button class="btn ghost" onclick="loadOrders()">Atualizar</button> <button class="btn ghost" onclick="logout()">Sair</button></div></div>
   <div class="card stats" id="stats"></div>
-  <div class="card"><div class="grid"><input id="q" placeholder="Buscar por pedido, nome, telefone ou tempo" oninput="render()"/><select id="pay" onchange="render()"><option value="">Todos pagamentos</option><option value="pending">Pendente</option><option value="paid">Pago</option><option value="free">Gratuito</option></select><select id="eng" onchange="render()"><option value="">Todas gravações</option><option value="pending">Pendente</option><option value="partial">Parcial</option><option value="completed">Concluído</option></select></div><div class="scan-actions"><button class="btn primary" onclick="startScanner()">Ler QR Code</button><button class="btn ghost" onclick="stopScanner()">Fechar câmera</button></div><div id="readerWrap" class="reader"><div id="reader" class="readerbox"></div><div class="muted" style="margin-top:8px">Aponte a câmera para o QR Code do pedido.</div></div></div>
+  <div class="card"><div class="grid"><input id="q" placeholder="Buscar por pedido, nome, telefone ou tempo" oninput="render()"/><select id="pay" onchange="render()"><option value="">Todos pagamentos</option><option value="pending">Pendente</option><option value="paid">Pago</option><option value="free">Gratuito</option><option value="cancelled">Cancelado</option></select><select id="eng" onchange="render()"><option value="">Todas gravações</option><option value="pending">Pendente</option><option value="partial">Parcial</option><option value="completed">Concluído</option></select></div><div class="toolbar"><button class="btn primary" onclick="startScanner()">Ler QR Code</button><button class="btn ghost" onclick="stopScanner()">Fechar câmera</button><button class="btn ghost" onclick="exportCSV()">Exportar CSV</button><button class="btn ghost" onclick="copyReport()">Copiar relatório</button></div><div class="mini" id="filteredInfo" style="margin-top:10px"></div><div id="readerWrap" class="reader"><div id="reader" class="readerbox"></div><div class="muted" style="margin-top:8px">Aponte a câmera para o QR Code do pedido.</div></div></div>
   <div id="list"></div>
 </div>
 <script>
@@ -25,6 +25,10 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXAiOi
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbWxkemlseG5zYW94ZnBqdWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODM5MzksImV4cCI6MjA5NjY1OTkzOX0.gZ3gaMpcNXWEPidv2U3mhvMfCMQfvk_aVHQLI_JbEjc';
 const db=supabase.createClient(SUPABASE_URL,KEY);
 let rows=[];
+let filteredRows=[];
+function brl(v){ return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+function csvSafe(v){ return `"${String(v ?? '').replaceAll('"','""')}"`; }
+function statusLabel(v){ return ({pending:'Pendente',paid:'Pago',free:'Gratuito',cancelled:'Cancelado',partial:'Parcial',completed:'Concluído'})[v] || v || ''; }
 
 let qrScanner = null;
 async function startScanner(){
@@ -72,15 +76,21 @@ async function loadOrders(){
 }
 function render(){
  const term=q.value.toLowerCase(); const payv=pay.value; const engv=eng.value;
- let filtered=rows.filter(o=>{
-   const txt=[o.order_code,o.customer_name,o.customer_phone,o.payment_status,o.engraving_status,...(o.athletes||[]).flatMap(a=>[a.medal_name,a.race_time])].join(' ').toLowerCase();
+ filteredRows=rows.filter(o=>{
+   const txt=[o.order_code,o.customer_name,o.customer_phone,o.customer_email,o.payment_status,o.engraving_status,...(o.athletes||[]).flatMap(a=>[a.medal_name,a.race_time,a.engraving_text])].join(' ').toLowerCase();
    return (!term||txt.includes(term)) && (!payv||o.payment_status===payv) && (!engv||o.engraving_status===engv);
  });
- stats.innerHTML=`<div class="stat card"><strong>${rows.length}</strong><span>Pedidos</span></div><div class="stat card"><strong>${rows.filter(o=>o.payment_status==='pending').length}</strong><span>Pendentes</span></div><div class="stat card"><strong>${rows.filter(o=>o.payment_status==='free'||o.payment_status==='paid').length}</strong><span>Liberados</span></div><div class="stat card"><strong>${rows.filter(o=>o.engraving_status==='completed').length}</strong><span>Gravados</span></div>`;
- list.innerHTML=filtered.map(orderCard).join('') || '<div class="card">Nenhum pedido encontrado.</div>';
+ const totalReceita=rows.filter(o=>o.payment_status==='paid').reduce((sum,o)=>sum+Number(o.total||0),0);
+ const totalLiberado=rows.filter(o=>o.payment_status==='paid'||o.payment_status==='free').length;
+ const totalAtletas=rows.reduce((sum,o)=>sum+(o.athletes||[]).length,0);
+ const atletasGravados=rows.reduce((sum,o)=>sum+(o.athletes||[]).filter(a=>a.engraved).length,0);
+ stats.innerHTML=`<div class="stat card"><strong>${rows.length}</strong><span>Pedidos</span><div class="mini">${totalAtletas} atletas</div></div><div class="stat card"><strong>${rows.filter(o=>o.payment_status==='pending').length}</strong><span>Pendentes</span><div class="mini">pagamento/validação</div></div><div class="stat card"><strong>${totalLiberado}</strong><span>Liberados</span><div class="mini">pagos + gratuitos</div></div><div class="stat card"><strong>${atletasGravados}</strong><span>Gravados</span><div class="mini">${rows.filter(o=>o.engraving_status==='completed').length} pedidos concluídos</div></div><div class="stat card"><strong class="money">${brl(totalReceita)}</strong><span>Receita paga</span><div class="mini">não inclui gratuitos</div></div>`;
+ filteredInfo.textContent=`Exibindo ${filteredRows.length} de ${rows.length} pedidos.`;
+ list.innerHTML=filteredRows.map(orderCard).join('') || '<div class="card">Nenhum pedido encontrado.</div>';
 }
 function orderCard(o){
- return `<div class="card"><div><strong>${o.order_code}</strong> <span class="pill">Pagamento: ${o.payment_status}</span> <span class="pill">Gravação: ${o.engraving_status}</span> <span class="pill">Total R$ ${Number(o.total).toFixed(2).replace('.',',')}</span></div><div class="muted">${o.customer_name||''} ${o.customer_phone||''}</div>${(o.athletes||[]).sort((a,b)=>a.athlete_index-b.athlete_index).map(a=>`<div class="ath"><div><div class="copytext">${a.engraving_text}</div><div class="muted">Atleta ${a.athlete_index} ${a.engraved?'• gravado':''}</div></div><div><button class="btn primary" onclick="copy('${a.engraving_text.replace(/'/g,"\\'")}')">Copiar</button> <button class="btn ok" onclick="markAthlete('${o.id}','${a.id}')">Marcar gravado</button></div></div>`).join('')}<div style="margin-top:12px"><button class="btn ghost" onclick="setPaid('${o.id}')">Marcar pago</button> <button class="btn ghost" onclick="completeOrder('${o.id}')">Concluir pedido</button></div></div>`
+ const athletes=(o.athletes||[]).sort((a,b)=>a.athlete_index-b.athlete_index);
+ return `<div class="card"><div><strong>${o.order_code}</strong> <span class="pill">Pagamento: ${statusLabel(o.payment_status)}</span> <span class="pill">Gravação: ${statusLabel(o.engraving_status)}</span> <span class="pill">Total ${brl(o.total)}</span></div><div class="muted">${o.customer_name||''} ${o.customer_phone||''} ${o.customer_email||''}</div>${athletes.map(a=>`<div class="ath"><div><div class="copytext">${a.engraving_text}</div><div class="muted">Atleta ${a.athlete_index} ${a.engraved?'• gravado':''}</div></div><div><button class="btn primary" onclick="copy('${a.engraving_text.replace(/'/g,"\\'")}')">Copiar</button> <button class="btn ok" onclick="markAthlete('${o.id}','${a.id}')">Marcar gravado</button></div></div>`).join('')}<div class="toolbar"><button class="btn ghost" onclick="setPaid('${o.id}')">Marcar pago</button> <button class="btn ghost" onclick="completeOrder('${o.id}')">Concluir pedido</button> <button class="btn warn" onclick="reopenOrder('${o.id}')">Reabrir</button> <button class="btn danger" onclick="cancelOrder('${o.id}')">Cancelar</button></div></div>`
 }
 async function copy(t){
  try{
@@ -96,6 +106,36 @@ function showToast(msg){
  el.classList.add('show');
  clearTimeout(window.__toastTimer);
  window.__toastTimer=setTimeout(()=>el.classList.remove('show'),1600);
+}
+function buildCSVRows(){
+ const header=['pedido','responsavel','whatsapp','email','pagamento','gravacao','subtotal','desconto','total','cupom','token','atleta','nome_medalha','tempo','texto_gravacao','gravado','criado_em'];
+ const lines=[header.map(csvSafe).join(',')];
+ for(const o of filteredRows){
+   const athletes=(o.athletes&&o.athletes.length)?o.athletes:[{}];
+   for(const a of athletes){
+     lines.push([
+       o.order_code,o.customer_name,o.customer_phone,o.customer_email,statusLabel(o.payment_status),statusLabel(o.engraving_status),o.subtotal,o.discount,o.total,o.coupon_code,o.team_token,a.athlete_index,a.medal_name,a.race_time,a.engraving_text,a.engraved?'sim':'não',o.created_at
+     ].map(csvSafe).join(','));
+   }
+ }
+ return lines.join('\n');
+}
+function exportCSV(){
+ const csv='\ufeff'+buildCSVRows();
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ const d=new Date().toISOString().slice(0,10);
+ a.href=url; a.download=`dot-relatorio-${d}.csv`; a.click();
+ URL.revokeObjectURL(url);
+ showToast('CSV exportado');
+}
+async function copyReport(){
+ const totalReceita=filteredRows.filter(o=>o.payment_status==='paid').reduce((sum,o)=>sum+Number(o.total||0),0);
+ const atletas=filteredRows.reduce((sum,o)=>sum+(o.athletes||[]).length,0);
+ const gravados=filteredRows.reduce((sum,o)=>sum+(o.athletes||[]).filter(a=>a.engraved).length,0);
+ const txt=`Relatório dot.\nPedidos: ${filteredRows.length}\nAtletas: ${atletas}\nLiberados: ${filteredRows.filter(o=>o.payment_status==='paid'||o.payment_status==='free').length}\nPendentes: ${filteredRows.filter(o=>o.payment_status==='pending').length}\nGravados: ${gravados}\nReceita paga: ${brl(totalReceita)}`;
+ try{ await navigator.clipboard.writeText(txt); showToast('Relatório copiado'); }catch(e){ showToast('Não foi possível copiar'); }
 }
 async function setPaid(id){await db.from('orders').update({payment_status:'paid',updated_at:new Date().toISOString()}).eq('id',id); await loadOrders()}
 async function markAthlete(orderId,athleteId){
@@ -114,6 +154,8 @@ async function markAthlete(orderId,athleteId){
  await loadOrders();
 }
 async function completeOrder(id){await db.from('orders').update({engraving_status:'completed',updated_at:new Date().toISOString()}).eq('id',id); await loadOrders()}
+async function reopenOrder(id){await db.from('orders').update({engraving_status:'pending',updated_at:new Date().toISOString()}).eq('id',id); await db.from('athletes').update({engraved:false,engraved_at:null}).eq('order_id',id); showToast('Pedido reaberto'); await loadOrders()}
+async function cancelOrder(id){await db.from('orders').update({payment_status:'cancelled',updated_at:new Date().toISOString()}).eq('id',id); showToast('Pedido cancelado'); await loadOrders()}
 requireLogin().then(ok=>{ if(ok){ loadOrders(); setInterval(loadOrders,15000); }});
 </script>
 </body>

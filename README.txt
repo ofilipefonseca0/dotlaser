@@ -27,3 +27,16 @@ V5:
 - Permite baixar o QR Code em PNG.
 - Painel dos operadores ganhou botão Ler QR Code usando a câmera.
 - Ao ler o QR, o campo de busca é preenchido automaticamente com o código do pedido.
+
+
+--- v6 ---
+Novidades:
+- Dashboard ampliado com pedidos, atletas, liberados, pendentes, gravados e receita paga.
+- Exportação CSV dos pedidos filtrados.
+- Botão para copiar relatório resumido da operação.
+- Filtro inclui cancelados.
+- Ações rápidas: reabrir pedido e cancelar pedido.
+
+Atualize no GitHub principalmente:
+- painel.html
+- README.txt
