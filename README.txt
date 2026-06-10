@@ -20,3 +20,10 @@ Como atualizar:
 
 Observação:
 A partir dessa versão, o código do pedido usa formato aleatório, exemplo DOT-8F3K2A, para não depender de leitura pública da tabela de pedidos.
+
+
+V5:
+- Gera QR Code na tela de sucesso do atleta.
+- Permite baixar o QR Code em PNG.
+- Painel dos operadores ganhou botão Ler QR Code usando a câmera.
+- Ao ler o QR, o campo de busca é preenchido automaticamente com o código do pedido.

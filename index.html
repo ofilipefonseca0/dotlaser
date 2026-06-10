@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>dot. laser | Cadastro de Medalhas</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <style>
     :root { --bg:#080808; --card:#111; --muted:#aaa; --line:#242424; --text:#f5f5f5; --accent:#fff; --ok:#7CFC98; }
-    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at top,#1f1f1f,#070707 45%);color:var(--text);min-height:100vh;padding:24px} .wrap{max-width:780px;margin:auto}.logo{font-size:30px;font-weight:700;letter-spacing:-1px}.sub{color:var(--muted);margin:6px 0 24px}.card{background:rgba(17,17,17,.92);border:1px solid var(--line);border-radius:22px;padding:20px;margin:14px 0;box-shadow:0 20px 60px rgba(0,0,0,.35)} label{display:block;margin:12px 0 6px;color:#ddd;font-size:14px} input,select{width:100%;padding:14px;border-radius:14px;border:1px solid #333;background:#090909;color:#fff;font-size:16px} .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{border:0;border-radius:14px;padding:14px 18px;font-size:16px;font-weight:700;cursor:pointer}.primary{background:#fff;color:#000}.ghost{background:#1d1d1d;color:#fff;border:1px solid #333}.danger{background:#2b1010;color:#fff}.athlete{border:1px solid #242424;border-radius:18px;padding:14px;margin:12px 0;background:#0b0b0b}.summary{line-height:1.8}.ok{color:#7CFC98}.warn{color:#ffd36a}.small{font-size:13px;color:#aaa}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.hidden{display:none}.success{background:#0d1c12;border-color:#234b2c}.code{font-size:34px;font-weight:900;letter-spacing:.8px;margin:10px 0}.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;border-radius:999px;padding:12px 18px;font-weight:800;box-shadow:0 12px 35px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.22s;z-index:9999}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.success-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at top,#1f1f1f,#070707 45%);color:var(--text);min-height:100vh;padding:24px} .wrap{max-width:780px;margin:auto}.logo{font-size:30px;font-weight:700;letter-spacing:-1px}.sub{color:var(--muted);margin:6px 0 24px}.card{background:rgba(17,17,17,.92);border:1px solid var(--line);border-radius:22px;padding:20px;margin:14px 0;box-shadow:0 20px 60px rgba(0,0,0,.35)} label{display:block;margin:12px 0 6px;color:#ddd;font-size:14px} input,select{width:100%;padding:14px;border-radius:14px;border:1px solid #333;background:#090909;color:#fff;font-size:16px} .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{border:0;border-radius:14px;padding:14px 18px;font-size:16px;font-weight:700;cursor:pointer}.primary{background:#fff;color:#000}.ghost{background:#1d1d1d;color:#fff;border:1px solid #333}.danger{background:#2b1010;color:#fff}.athlete{border:1px solid #242424;border-radius:18px;padding:14px;margin:12px 0;background:#0b0b0b}.summary{line-height:1.8}.ok{color:#7CFC98}.warn{color:#ffd36a}.small{font-size:13px;color:#aaa}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.hidden{display:none}.success{background:#0d1c12;border-color:#234b2c}.code{font-size:34px;font-weight:900;letter-spacing:.8px;margin:10px 0}.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;border-radius:999px;padding:12px 18px;font-weight:800;box-shadow:0 12px 35px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.22s;z-index:9999}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.success-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.qrbox{background:#fff;padding:14px;border-radius:18px;width:max-content;margin:16px 0}.qrbox img{display:block}.qr-note{color:#d7d7d7;font-size:14px}
     @media(max-width:650px){.row{grid-template-columns:1fr}body{padding:14px}.card{padding:16px}}
   </style>
 </head>
@@ -125,6 +126,21 @@ async function copyText(t){
   catch(e){ showToast('Não foi possível copiar'); }
 }
 function newOrder(){ window.location.reload(); }
+function makeQRCode(code){
+  const el = document.getElementById('qrcode');
+  if(!el || typeof QRCode === 'undefined') return;
+  el.innerHTML = '';
+  new QRCode(el, { text: code, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.H });
+}
+function downloadQR(code){
+  const img = document.querySelector('#qrcode img') || document.querySelector('#qrcode canvas');
+  if(!img){ showToast('QR Code ainda não carregou'); return; }
+  let url = img.tagName.toLowerCase()==='canvas' ? img.toDataURL('image/png') : img.src;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = code + '-qrcode.png';
+  a.click();
+}
 async function confirmOrder(){
   await calculate();
   const athletes=getAthletes();
@@ -138,7 +154,8 @@ async function confirmOrder(){
   const { error:athErr } = await db.from('athletes').insert(athleteRows);
   if(athErr){ showToast('Erro ao salvar atletas'); console.error(athErr); return; }
   result.classList.remove('hidden');
-  result.innerHTML=`<h2>✅ Cadastro realizado!</h2><p>Seu código do pedido é:</p><div class="code">${code}</div><p>Mostre este código no stand da <strong>dot.</strong> para localizar sua gravação com mais rapidez.</p><p>Status: <strong>${lastCalc.payment_status==='free'?'Gratuito por benefício':'Pendente de pagamento/validação'}</strong></p><div class="success-actions"><button class="btn primary" onclick="copyText('${code}')">Copiar código</button><button class="btn ghost" onclick="newOrder()">Fazer novo cadastro</button></div>`;
+  result.innerHTML=`<h2>✅ Cadastro realizado!</h2><p>Seu código do pedido é:</p><div class="code">${code}</div><div class="qr-note">Mostre este QR Code ou o código no stand da <strong>dot.</strong> para localizar sua gravação com mais rapidez.</div><div id="qrcode" class="qrbox"></div><p>Status: <strong>${lastCalc.payment_status==='free'?'Gratuito por benefício':'Pendente de pagamento/validação'}</strong></p><div class="success-actions"><button class="btn primary" onclick="copyText('${code}')">Copiar código</button><button class="btn ghost" onclick="downloadQR('${code}')">Baixar QR Code</button><button class="btn ghost" onclick="newOrder()">Fazer novo cadastro</button></div>`;
+  makeQRCode(code);
   window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
 }
 init();
