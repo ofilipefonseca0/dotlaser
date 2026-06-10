@@ -106,11 +106,12 @@ async function calculate(){
   document.getElementById('summary').innerHTML=`Quantidade: <strong>${qty}</strong><br>Valor unitário: <strong>R$ ${basePrice.toFixed(2).replace('.',',')}</strong><br>Subtotal: <strong>R$ ${subtotal.toFixed(2).replace('.',',')}</strong><br>Desconto: <strong>R$ ${discount.toFixed(2).replace('.',',')}</strong><br>Total: <strong>R$ ${total.toFixed(2).replace('.',',')}</strong><br>${msg}`;
 }
 async function orderCode(){
-  // MVP: gera um código mais amigável baseado na quantidade atual de pedidos.
-  // Em versão com Pix/login, podemos trocar por função SQL atômica.
-  const { count } = await db.from('orders').select('*', { count:'exact', head:true });
-  const seq = String((count || 0) + 1).padStart(4,'0');
-  return 'DOT-' + seq;
+  // Código amigável sem precisar consultar pedidos públicos.
+  // Ex.: DOT-8F3K2A
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'DOT-';
+  for(let i=0;i<6;i++) code += chars[Math.floor(Math.random()*chars.length)];
+  return code;
 }
 function showToast(msg){
   const el=document.getElementById('toast');
@@ -129,10 +130,11 @@ async function confirmOrder(){
   const athletes=getAthletes();
   if(!athletes.length){ showToast('Preencha pelo menos um atleta'); return; }
   const code=await orderCode();
-  const orderPayload={ order_code:code, event_id:eventId, customer_name:customerName.value.trim(), customer_phone:customerPhone.value.trim(), customer_email:customerEmail.value.trim(), coupon_code:coupon.value.trim().toUpperCase(), team_token:token.value.trim().toUpperCase(), subtotal:lastCalc.subtotal, discount:lastCalc.discount, total:lastCalc.total, payment_status:lastCalc.payment_status };
-  const { data:order, error } = await db.from('orders').insert(orderPayload).select().single();
+  const orderId = crypto.randomUUID();
+  const orderPayload={ id:orderId, order_code:code, event_id:eventId, customer_name:customerName.value.trim(), customer_phone:customerPhone.value.trim(), customer_email:customerEmail.value.trim(), coupon_code:coupon.value.trim().toUpperCase(), team_token:token.value.trim().toUpperCase(), subtotal:lastCalc.subtotal, discount:lastCalc.discount, total:lastCalc.total, payment_status:lastCalc.payment_status };
+  const { error } = await db.from('orders').insert(orderPayload);
   if(error){ showToast('Erro ao salvar pedido'); console.error(error); return; }
-  const athleteRows=athletes.map(a=>({...a, order_id:order.id}));
+  const athleteRows=athletes.map(a=>({...a, order_id:orderId}));
   const { error:athErr } = await db.from('athletes').insert(athleteRows);
   if(athErr){ showToast('Erro ao salvar atletas'); console.error(athErr); return; }
   result.classList.remove('hidden');

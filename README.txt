@@ -1,20 +1,22 @@
-DOT. LASER - MVP Supabase v3
+DOT. LASER - MVP v4 com login no painel
 
 Arquivos:
-- schema.sql: estrutura inicial do banco. Se você já rodou o schema da v1/v2, não precisa rodar novamente.
-- index.html: página pública do atleta com código do pedido e tela de sucesso.
-- painel.html: painel interno com busca por código, nome, WhatsApp, tempo e status.
+- index.html: página pública do atleta
+- login.html: tela de login dos operadores
+- painel.html: painel interno protegido
+- schema.sql: estrutura inicial completa do banco
+- schema-auth.sql: políticas de segurança para proteger o painel
 
-Atualização v3:
-1. Código de pedido amigável, exemplo DOT-0001.
-2. Tela de sucesso após confirmar cadastro.
-3. Botão para copiar o código do pedido sem alert.
-4. Busca do painel reforçada por código, nome, WhatsApp e tempo.
-
-Para atualizar na Vercel:
-1. Substitua os arquivos index.html e painel.html no GitHub.
-2. Faça Commit changes.
-3. A Vercel atualiza o site automaticamente.
+Como atualizar:
+1. Suba index.html, login.html e painel.html para o GitHub.
+2. Faça commit. A Vercel deve publicar automaticamente.
+3. No Supabase, vá em Authentication > Users > Add user.
+4. Crie um usuário de operador com e-mail e senha.
+5. No Supabase, vá em SQL Editor, cole o conteúdo de schema-auth.sql e clique em Run.
+6. Teste:
+   - dotlaser.vercel.app/index.html deve continuar público.
+   - dotlaser.vercel.app/painel.html deve redirecionar para login.html.
+   - Após login, o painel deve abrir normalmente.
 
 Observação:
-Esta versão ainda está com regras públicas de MVP no Supabase. Antes de usar em evento real, implementar login no painel.
+A partir dessa versão, o código do pedido usa formato aleatório, exemplo DOT-8F3K2A, para não depender de leitura pública da tabela de pedidos.

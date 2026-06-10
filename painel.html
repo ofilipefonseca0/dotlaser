@@ -12,7 +12,7 @@
 <body>
 <div id="toast" class="toast">Copiado</div>
 <div class="wrap">
-  <div class="top"><div><div class="logo">dot. painel</div><div class="muted">Busca rápida para operadores</div></div><button class="btn ghost" onclick="loadOrders()">Atualizar</button></div>
+  <div class="top"><div><div class="logo">dot. painel</div><div class="muted">Busca rápida para operadores <span id="userEmail"></span></div></div><div><button class="btn ghost" onclick="loadOrders()">Atualizar</button> <button class="btn ghost" onclick="logout()">Sair</button></div></div>
   <div class="card stats" id="stats"></div>
   <div class="card"><div class="grid"><input id="q" placeholder="Buscar por pedido, nome, telefone ou tempo" oninput="render()"/><select id="pay" onchange="render()"><option value="">Todos pagamentos</option><option value="pending">Pendente</option><option value="paid">Pago</option><option value="free">Gratuito</option></select><select id="eng" onchange="render()"><option value="">Todas gravações</option><option value="pending">Pendente</option><option value="partial">Parcial</option><option value="completed">Concluído</option></select></div></div>
   <div id="list"></div>
@@ -24,6 +24,13 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXAiOi
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbWxkemlseG5zYW94ZnBqdWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODM5MzksImV4cCI6MjA5NjY1OTkzOX0.gZ3gaMpcNXWEPidv2U3mhvMfCMQfvk_aVHQLI_JbEjc';
 const db=supabase.createClient(SUPABASE_URL,KEY);
 let rows=[];
+async function requireLogin(){
+ const {data}=await db.auth.getSession();
+ if(!data.session){ window.location.href='login.html'; return false; }
+ document.getElementById('userEmail').textContent='• '+(data.session.user.email||'');
+ return true;
+}
+async function logout(){ await db.auth.signOut(); window.location.href='login.html'; }
 async function loadOrders(){
  const {data,error}=await db.from('orders').select('*, athletes(*)').order('created_at',{ascending:false}).limit(300);
  if(error){list.innerHTML='<div class="card">Erro: '+error.message+'</div>';return}
@@ -73,7 +80,7 @@ async function markAthlete(orderId,athleteId){
  await loadOrders();
 }
 async function completeOrder(id){await db.from('orders').update({engraving_status:'completed',updated_at:new Date().toISOString()}).eq('id',id); await loadOrders()}
-loadOrders(); setInterval(loadOrders,15000);
+requireLogin().then(ok=>{ if(ok){ loadOrders(); setInterval(loadOrders,15000); }});
 </script>
 </body>
 </html>
