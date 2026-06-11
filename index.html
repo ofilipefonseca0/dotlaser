@@ -30,7 +30,7 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 let basePrice=29.90,eventId=null,eventPrefix='DOT',eventSlug='',events=[],athleteCount=0,lastCalc={subtotal:0,discount:0,total:0,payment_status:'pending'};
 async function init(){
-  const {data,error}=await db.from('events').select('*').eq('active',true).order('created_at',{ascending:false});
+  const {data,error}=await db.from('events').select('*').eq('is_active',true).order('created_at',{ascending:false});
   if(error){showToast('Erro ao carregar eventos');return}
   events=data||[]; if(!events.length){showToast('Nenhum evento ativo'); return}
   const urlSlug=new URLSearchParams(location.search).get('event');
@@ -39,26 +39,7 @@ async function init(){
   eventSelect.value=chosen.slug; applyEvent(chosen); addAthlete(); calculate();
 }
 function selectEvent(slug){const e=events.find(x=>x.slug===slug); if(e){applyEvent(e); calculate();}}
-function applyEvent(e){
-  eventId=e.id;
-  eventPrefix=e.code_prefix||'DOT';
-  eventSlug=e.slug;
-
-  const rawPrice = e.base_price ?? e.price_per_medal ?? null;
-  const numericPrice = Number(rawPrice);
-  const isFreeEvent =
-    e.is_free === true ||
-    e.free === true ||
-    e.gravacao_gratuita === true ||
-    rawPrice === 0 ||
-    rawPrice === '0' ||
-    rawPrice === '0.00' ||
-    (!Number.isNaN(numericPrice) && numericPrice === 0);
-
-  basePrice = isFreeEvent ? 0 : (!Number.isNaN(numericPrice) ? numericPrice : 29.90);
-  eventName.textContent=e.name+(isFreeEvent?' • gravação gratuita':'');
-  history.replaceState(null,'',location.pathname+'?event='+encodeURIComponent(e.slug));
-}
+function applyEvent(e){eventId=e.id;eventPrefix=e.code_prefix||'DOT';eventSlug=e.slug;const free=(e.is_free===true||Number(e.base_price)===0);basePrice=free?0:Number(e.base_price ?? 29.90);eventName.textContent=e.name+(free?' • gravação gratuita':''); history.replaceState(null,'',location.pathname+'?event='+encodeURIComponent(e.slug));}
 function upper(el){const p=el.selectionStart;el.value=el.value.toUpperCase();try{el.setSelectionRange(p,p)}catch(e){}}
 function formatTime(el){let d=el.value.replace(/\D/g,'').slice(0,6);let out=d;if(d.length<=2){out=d}else if(d.length<=4){out=d.slice(0,-2)+':'+d.slice(-2)}else{let h=String(parseInt(d.slice(0,-4),10));let m=d.slice(-4,-2);let sec=d.slice(-2);out=(h==='0')?`${m}:${sec}`:`${h}:${m}:${sec}`}el.value=out;calculate()}
 function addAthlete(){athleteCount++;const box=document.createElement('div');box.className='athlete';box.id='athlete-'+athleteCount;box.innerHTML=`<h4>Atleta ${athleteCount}</h4><label>✍️ Nome na medalha <span class="small">(máx. 18 caracteres)</span></label><input class="medalName" maxlength="18" placeholder="Ex.: JOÃO" oninput="upper(this);countChars(this);calculate()"/><div class="counter">0/18</div><label>⏱️ Tempo de prova <span class="small">(opcional)</span></label><input class="raceTime" inputmode="numeric" maxlength="8" placeholder="Digite 12233 → 1:22:33" oninput="formatTime(this)"/>${athleteCount>1?'<div class="actions"><button class="btn danger" onclick="removeAthlete('+athleteCount+')">🗑️ Remover atleta</button></div>':''}`;athletes.appendChild(box);calculate()}
