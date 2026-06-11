@@ -84,8 +84,15 @@ async function createDotEvent(){
 async function loadEvents(){
  const {data,error}=await window.sb.from('events').select('*').order('created_at',{ascending:false});
  if(error) return showToast(error.message,'err');
- document.getElementById('events').innerHTML=(data||[]).map(e=>`<div class="order"><b>${e.name}</b><div class="muted">${e.code_prefix||'DOT'} • ${e.city||''} • ${e.event_date||''} • ${money(e.base_price)}</div><span class="pill">${e.is_active?'ativo':'inativo'}</span></div>`).join('')||'<p class="muted">Nenhum evento.</p>';
+ document.getElementById('events').innerHTML=(data||[]).map(e=>`<div class="order"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><b>${e.name}</b><div class="muted">${e.code_prefix||'DOT'} • ${e.city||''} • ${e.event_date||''} • ${money(e.base_price)}</div><span class="pill">${e.is_active?'ativo':'inativo'}</span></div><div class="row"><button class="${e.is_active?'danger':'ok'}" onclick="toggleEvent('${e.id}', ${!e.is_active})">${e.is_active?'Desativar':'Ativar'}</button></div></div></div>`).join('')||'<p class="muted">Nenhum evento.</p>';
 }
+async function toggleEvent(id, active){
+ const {error}=await window.sb.from('events').update({is_active:active, updated_at:new Date().toISOString()}).eq('id',id);
+ if(error) return showToast(error.message,'err');
+ showToast(active?'Evento ativado':'Evento desativado');
+ await loadEvents();
+}
+
 async function loadArchived(){
  const {data,error}=await window.sb.from('orders').select('*, events(name,code_prefix), athletes(*)').eq('archived',true).order('created_at',{ascending:false});
  if(error)return showToast(error.message,'err');
