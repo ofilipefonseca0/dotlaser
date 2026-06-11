@@ -1,154 +1,96 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>dot. | Eventos</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;background:#070707;color:#f5f5f5;padding:20px}
-    .wrap{max-width:1000px;margin:auto}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.logo{font-size:28px;font-weight:800}
-    .card{background:#111;border:1px solid #252525;border-radius:18px;padding:16px;margin:14px 0}label{display:block;margin:12px 0 6px;color:#ddd;font-size:14px}
-    input,select{box-sizing:border-box;padding:14px;border-radius:12px;border:1px solid #333;background:#090909;color:#fff;font-size:16px;width:100%}
-    .row{display:grid;grid-template-columns:1.5fr .7fr .7fr .7fr;gap:10px}.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;display:inline-block}
-    .primary{background:#fff;color:#000}.ghost{background:#222;color:#fff;border:1px solid #333}.muted{color:#aaa}.error{color:#ffb4b4}.ok{color:#c8ffc8}
-    .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;border-radius:999px;padding:12px 18px;font-weight:800;opacity:0;pointer-events:none;transition:.22s;z-index:5}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-    table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #252525;padding:10px;text-align:left}.pill{border:1px solid #333;border-radius:999px;padding:4px 8px;font-size:12px}
-    @media(max-width:760px){.row{grid-template-columns:1fr}table{font-size:13px}.top>div:last-child{display:flex;gap:8px;flex-wrap:wrap}}
-  </style>
-</head>
-<body>
-  <div id="toast" class="toast">Tudo certo</div>
-  <div class="wrap">
-    <div class="top">
-      <div><div class="logo">dot. eventos</div><div class="muted">Painel administrativo</div></div>
-      <div>
-        <button class="btn ghost" type="button" id="backBtn">← Voltar</button>
-        <a class="btn ghost" href="painel.html" style="text-decoration:none">Painel operação</a>
-        <button class="btn ghost" type="button" id="logoutBtn">Sair</button>
-      </div>
-    </div>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin | dot.</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>
+:root{--bg:#08080a;--card:#111116;--muted:#a0a0aa;--text:#f5f5f7;--line:#24242c;--accent:#e7e7ea;--danger:#ff6b6b;--ok:#3ddc97}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#050506,#15151b);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+.wrap{max-width:1180px;margin:0 auto;padding:28px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}
+.logo{font-size:28px;font-weight:700;letter-spacing:-.04em}.logo span{color:#888}.card{background:rgba(17,17,22,.88);border:1px solid var(--line);border-radius:22px;padding:20px;margin-bottom:18px;box-shadow:0 20px 60px rgba(0,0,0,.22)}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{background:#0c0c10;border:1px solid var(--line);border-radius:16px;padding:16px}.metric b{display:block;font-size:24px}.metric span{color:var(--muted);font-size:13px}
+input,select{width:100%;background:#09090d;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:13px 14px;outline:none}label{font-size:13px;color:var(--muted);display:block;margin:10px 0 6px}
+button,.btn{border:0;border-radius:14px;padding:12px 15px;background:#f2f2f3;color:#050506;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;gap:8px;align-items:center}.btn2{background:#202027;color:#fff;border:1px solid var(--line)}.danger{background:#341a1d;color:#fff;border:1px solid #6b242d}.ok{background:#123323;color:#d8ffe9;border:1px solid #245d3d}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.muted{color:var(--muted)}.hidden{display:none!important}.order{border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;background:#0b0b0f}.pill{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:5px 10px;color:#bbb;font-size:12px;margin-right:6px}.ath{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:12px 0;gap:10px}.toast{display:none;position:fixed;right:22px;bottom:22px;background:#121218;border:1px solid var(--line);padding:14px 16px;border-radius:16px;z-index:99}.toast.err{border-color:#7b2931;color:#ffd7d7}.toast.ok{border-color:#245d3d;color:#d8ffe9}
+.debug{font-family:ui-monospace,Menlo,monospace;white-space:pre-wrap;background:#050508;border:1px dashed #444;border-radius:16px;padding:14px;color:#ddd;font-size:12px}
+@media(max-width:760px){.grid{grid-template-columns:1fr 1fr}.top{align-items:flex-start;flex-direction:column}.ath{align-items:flex-start;flex-direction:column}}
+</style></head><body><div class="wrap"><div class="top"><div><div class="logo">dot<span>.</span> admin</div><div class="muted" id="who"></div></div><div class="row"><a class="btn btn2" href="painel.html">Voltar ao painel</a><button class="btn2" onclick="logout()">Sair</button></div></div><div id="blocked" class="card hidden"><h2>Acesso restrito</h2><p>Seu usuário não está como administrador.</p><pre id="debug" class="debug"></pre></div><div id="adminArea" class="hidden"><div class="card"><h2>Criar evento</h2><div class="grid"><div><label>Nome do evento</label><input id="name" placeholder="SelfRun Natal" oninput="suggestPrefix()"></div><div><label>Prefixo</label><input id="code_prefix" maxlength="10" placeholder="SELF"></div><div><label>Valor base</label><input id="base_price" type="number" step="0.01" value="29.90"></div><div><label>Data</label><input id="event_date" type="date"></div></div><label>Cidade</label><input id="city" placeholder="Natal/RN"><br><br><button onclick="createDotEvent()">Criar evento</button><p id="msg" class="muted"></p></div><div class="card"><h2>Eventos</h2><div id="events"></div></div><div class="card"><h2>Pedidos arquivados</h2><button class="btn2" onclick="loadArchived()">Carregar arquivados</button><div id="archived"></div></div></div></div><div id="toast"></div><script>
+const SUPABASE_URL = 'https://tamldzilxnsaoxfpjugr.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbWxkemlseG5zYW94ZnBqdWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODM5MzksImV4cCI6MjA5NjY1OTkzOX0.gZ3gaMpcNXWEPidv2U3mhvMfCMQfvk_aVHQLI_JbEjc';
+window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <div class="card">
-      <h3>Criar evento</h3>
-      <div class="row">
-        <div><label>Nome do evento</label><input id="eventName" placeholder="Ex.: SelfRun Natal"></div>
-        <div><label>Prefixo</label><input id="eventPrefix" maxlength="8" placeholder="SELF"></div>
-        <div><label>Valor</label><input id="eventPrice" inputmode="decimal" value="29,90"></div>
-        <div><label>Data</label><input id="eventDate" type="date"></div>
-      </div>
-      <label>Cidade/local</label><input id="eventCity" placeholder="Ex.: Natal/RN">
-      <div style="margin-top:14px"><button class="btn primary" type="button" id="createEventBtn">Criar evento</button></div>
-      <p id="formMsg" class="muted">O link público será gerado automaticamente no formato: <strong>index.html?event=slug-do-evento</strong></p>
-    </div>
-
-    <div class="card"><h3>Eventos cadastrados</h3><div id="list">Carregando...</div></div>
-  </div>
-
-<script>
-const SUPABASE_URL='https://tamldzilxnsaoxfpjugr.supabase.co';
-const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbWxkemlseG5zYW94ZnBqdWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODM5MzksImV4cCI6MjA5NjY1OTkzOX0.gZ3gaMpcNXWEPidv2U3mhvMfCMQfvk_aVHQLI_JbEjc';
-const db=supabase.createClient(SUPABASE_URL,KEY);window.db=db;window.supabaseClient=db;
-let events=[], currentUser=null, currentProfile={role:'operator'};
-
-const $ = (id) => document.getElementById(id);
-const els = {
-  name: $('eventName'), prefix: $('eventPrefix'), price: $('eventPrice'), date: $('eventDate'), city: $('eventCity'),
-  list: $('list'), toast: $('toast'), formMsg: $('formMsg'), createBtn: $('createEventBtn')
-};
-
-async function requireLogin(){
-  const {data}=await db.auth.getSession();
-  if(!data.session){ location.href='login.html'; return false; }
-  currentUser=data.session.user;
-  let profile=null;
-  const byId=await db.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();
-  if(byId.error) console.warn('Erro ao buscar perfil por ID:', byId.error);
-  profile=byId.data;
-  if(!profile && currentUser.email){
-    const byEmail=await db.from('profiles').select('*').eq('email',currentUser.email).maybeSingle();
-    if(byEmail.error) console.warn('Erro ao buscar perfil por e-mail:', byEmail.error);
-    profile=byEmail.data;
-  }
-  currentProfile=profile||{role:'operator',email:currentUser.email};
-  window.currentUser=currentUser; window.currentProfile=currentProfile;
-  if(currentProfile.role!=='admin'){ document.body.innerHTML='<div class=\"wrap\"><div class=\"card\"><h2>Acesso restrito</h2><p class=\"muted\">Seu usuário é operador. O painel de eventos é exclusivo para administradores.</p><a class=\"btn primary\" href=\"painel.html\" style=\"text-decoration:none\">Ir para painel de operação</a></div></div>'; return false; }
-  return true;
+function showToast(msg, type='ok') {
+  let el=document.getElementById('toast');
+  if(!el){ el=document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
+  el.className='toast '+type;
+  el.textContent=msg;
+  el.style.display='block';
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer=setTimeout(()=>el.style.display='none',2600);
 }
-async function logout(){ await db.auth.signOut(); location.href='login.html'; }
-function sanitizePrefix(value){ return String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8); }
-function slugify(value){ return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+async function requireLogin() {
+  const { data, error } = await window.sb.auth.getUser();
+  if(error || !data.user) {
+    location.href = 'login.html';
+    return null;
+  }
+  return data.user;
+}
+async function getProfile(user) {
+  let { data, error } = await window.sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+  if((error || !data) && user.email) {
+    const r = await window.sb.from('profiles').select('*').eq('email', user.email).maybeSingle();
+    data = r.data; error = r.error;
+  }
+  return {profile:data, profileError:error};
+}
+async function logout() {
+  await window.sb.auth.signOut();
+  location.href='login.html';
+}
+function money(v){ return (Number(v||0)).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+function fmtLine(a){ return [a.medal_name || a.name || '', a.race_time || ''].filter(Boolean).join(' | '); }
+
+let user=null, profile=null;
+async function init(){
+ user=await requireLogin(); if(!user) return;
+ const r=await getProfile(user); profile=r.profile;
+ document.getElementById('who').textContent=`${user.email} • ${profile?.role||'sem role'}`;
+ if((profile?.role||'').toLowerCase()!=='admin'){
+   document.getElementById('blocked').classList.remove('hidden');
+   document.getElementById('debug').textContent=JSON.stringify({user:{id:user.id,email:user.email},profile,profileError:r.profileError},null,2);
+   return;
+ }
+ document.getElementById('adminArea').classList.remove('hidden');
+ await loadEvents();
+}
 function suggestPrefix(){
-  const current = sanitizePrefix(els.prefix.value);
-  els.prefix.value = current;
-  if(current) return;
-  const value = String(els.name.value||'');
-  const words = value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().match(/[A-Z0-9]+/g)||[];
-  els.prefix.value = sanitizePrefix(words.length===1 ? words[0].slice(0,4) : words.map(w=>w[0]).join('').slice(0,5));
+ const raw=(document.getElementById('name').value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9 ]/g,'').trim();
+ if(!raw) return;
+ const p=raw.split(/\s+/).map(w=>w[0]).join('').slice(0,5).toUpperCase();
+ document.getElementById('code_prefix').value=p||'DOT';
 }
-function showToast(msg){ els.toast.textContent=msg; els.toast.classList.add('show'); clearTimeout(window.__t); window.__t=setTimeout(()=>els.toast.classList.remove('show'),2200); }
-function setFormMessage(msg, type='muted'){ els.formMsg.className=type; els.formMsg.innerHTML=msg; }
-
 async function createDotEvent(){
-  const n = String(els.name.value||'').trim();
-  if(!n){ showToast('Informe o nome do evento'); els.name.focus(); return; }
-  let slug = slugify(n);
-  if(!slug) slug = 'evento-' + Date.now().toString().slice(-5);
-  const p = sanitizePrefix(els.prefix.value || 'DOT') || 'DOT';
-  const val = Number(String(els.price.value||'29,90').replace(',','.')) || 29.90;
-  const payload = { name:n, slug, code_prefix:p, base_price:val, city:String(els.city.value||'').trim()||null, event_date:els.date.value||null, is_active:true };
-
-  els.createBtn.disabled = true;
-  els.createBtn.textContent = 'Criando...';
-  setFormMessage('Criando evento...', 'muted');
-
-  try{
-    const {data:existing, error:checkError} = await db.from('events').select('slug').eq('slug',slug).maybeSingle();
-    if(checkError) throw checkError;
-    if(existing) payload.slug = slug + '-' + Date.now().toString().slice(-4);
-
-    const {data,error}=await db.from('events').insert(payload).select('*').single();
-    if(error) throw error;
-
-    showToast('Evento criado: '+(data.code_prefix||p));
-    setFormMessage('✅ Evento criado com sucesso.', 'ok');
-    els.name.value=''; els.prefix.value=''; els.city.value=''; els.date.value=''; els.price.value='29,90';
-    await loadEvents();
-  }catch(error){
-    console.error('Erro ao criar evento:', error, payload);
-    const msg = error && error.message ? error.message : 'erro desconhecido';
-    setFormMessage('Erro ao criar evento: '+msg, 'error');
-    showToast('Erro ao criar evento');
-  }finally{
-    els.createBtn.disabled = false;
-    els.createBtn.textContent = 'Criar evento';
-  }
-}
-
-async function toggleActive(id,current){
-  const {error}=await db.from('events').update({is_active:!current}).eq('id',id);
-  if(error){ console.error(error); showToast('Erro ao atualizar'); return; }
-  loadEvents();
+ const payload={
+  name:document.getElementById('name').value.trim(),
+  code_prefix:(document.getElementById('code_prefix').value||'DOT').replace(/[^A-Za-z0-9]/g,'').toUpperCase(),
+  base_price:Number(document.getElementById('base_price').value||0),
+  city:document.getElementById('city').value.trim()||null,
+  event_date:document.getElementById('event_date').value||null,
+  is_active:true
+ };
+ if(!payload.name) return showToast('Informe o nome do evento','err');
+ const {data,error}=await window.sb.from('events').insert(payload).select().single();
+ if(error){ document.getElementById('msg').textContent='Erro ao criar evento: '+error.message; return showToast(error.message,'err'); }
+ document.getElementById('msg').textContent='Evento criado: '+data.name;
+ showToast('Evento criado');
+ await loadEvents();
 }
 async function loadEvents(){
-  const {data,error}=await db.from('events').select('*').order('created_at',{ascending:false});
-  if(error){ els.list.innerHTML='<span class="error">Erro: '+error.message+'</span>'; return; }
-  events=data||[];
-  if(!events.length){ els.list.innerHTML='<p class="muted">Nenhum evento cadastrado ainda.</p>'; return; }
-  els.list.innerHTML=`<table><thead><tr><th>Evento</th><th>Prefixo</th><th>Valor</th><th>Status</th><th>Links</th><th></th></tr></thead><tbody>${events.map(e=>{
-    const url=location.origin+location.pathname.replace('admin.html','index.html')+'?event='+encodeURIComponent(e.slug||'');
-    return `<tr><td><strong>${e.name||''}</strong><br><span class="muted">${e.slug||''}</span></td><td>${e.code_prefix||'DOT'}</td><td>R$ ${Number(e.base_price||0).toFixed(2).replace('.',',')}</td><td><span class="pill">${e.is_active?'Ativo':'Inativo'}</span></td><td><a style="color:#fff" href="${url}" target="_blank">Cadastro</a></td><td><button class="btn ghost" type="button" onclick="toggleActive('${e.id}',${!!e.is_active})">${e.is_active?'Desativar':'Ativar'}</button></td></tr>`;
-  }).join('')}</tbody></table>`;
+ const {data,error}=await window.sb.from('events').select('*').order('created_at',{ascending:false});
+ if(error) return showToast(error.message,'err');
+ document.getElementById('events').innerHTML=(data||[]).map(e=>`<div class="order"><b>${e.name}</b><div class="muted">${e.code_prefix||'DOT'} • ${e.city||''} • ${e.event_date||''} • ${money(e.base_price)}</div><span class="pill">${e.is_active?'ativo':'inativo'}</span></div>`).join('')||'<p class="muted">Nenhum evento.</p>';
 }
-
-document.addEventListener('DOMContentLoaded',()=>{
-  $('backBtn').addEventListener('click',()=>{ history.length>1 ? history.back() : location.href='painel.html'; });
-  $('logoutBtn').addEventListener('click',logout);
-  els.createBtn.addEventListener('click',createDotEvent);
-  els.name.addEventListener('input',suggestPrefix);
-  els.prefix.addEventListener('input',()=>{ els.prefix.value=sanitizePrefix(els.prefix.value); });
-  requireLogin().then(ok=>{ if(ok) loadEvents(); });
-});
-</script>
-</body>
-</html>
+async function loadArchived(){
+ const {data,error}=await window.sb.from('orders').select('*, events(name,code_prefix), athletes(*)').eq('archived',true).order('created_at',{ascending:false});
+ if(error)return showToast(error.message,'err');
+ document.getElementById('archived').innerHTML=(data||[]).map(o=>`<div class="order"><b>${o.order_code}</b><div class="muted">${o.events?.name||''} • ${o.customer_name||''} • ${money(o.total_amount)}</div><button class="btn2" onclick="unarchive('${o.id}')">Desarquivar</button></div>`).join('')||'<p class="muted">Nenhum arquivado.</p>';
+}
+async function unarchive(id){ const {error}=await window.sb.from('orders').update({archived:false}).eq('id',id); if(error)return showToast(error.message,'err'); await loadArchived(); }
+init();
+</script></body></html>
