@@ -49,3 +49,9 @@ Substitua/suba estes arquivos:
 - Como operador, verificar que não aparecem valores dos pedidos.
 - Como admin, arquivar um pedido e confirmar que ele some da lista padrão.
 - Marcar "Mostrar arquivados" como admin e confirmar que o pedido aparece novamente.
+
+
+v7.1 - Correção de reconhecimento de administrador
+- O painel agora busca o perfil por ID e, se não encontrar, busca por e-mail.
+- O cliente Supabase fica disponível no console como window.db para diagnóstico.
+- Após subir os arquivos, faça logout, Ctrl+F5 e login novamente.

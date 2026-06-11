@@ -48,7 +48,7 @@
 <script>
 const SUPABASE_URL='https://tamldzilxnsaoxfpjugr.supabase.co';
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbWxkemlseG5zYW94ZnBqdWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODM5MzksImV4cCI6MjA5NjY1OTkzOX0.gZ3gaMpcNXWEPidv2U3mhvMfCMQfvk_aVHQLI_JbEjc';
-const db=supabase.createClient(SUPABASE_URL,KEY);
+const db=supabase.createClient(SUPABASE_URL,KEY);window.db=db;window.supabaseClient=db;
 let events=[], currentUser=null, currentProfile={role:'operator'};
 
 const $ = (id) => document.getElementById(id);
@@ -61,8 +61,17 @@ async function requireLogin(){
   const {data}=await db.auth.getSession();
   if(!data.session){ location.href='login.html'; return false; }
   currentUser=data.session.user;
-  const {data:profile}=await db.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();
-  currentProfile=profile||{role:'operator'};
+  let profile=null;
+  const byId=await db.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();
+  if(byId.error) console.warn('Erro ao buscar perfil por ID:', byId.error);
+  profile=byId.data;
+  if(!profile && currentUser.email){
+    const byEmail=await db.from('profiles').select('*').eq('email',currentUser.email).maybeSingle();
+    if(byEmail.error) console.warn('Erro ao buscar perfil por e-mail:', byEmail.error);
+    profile=byEmail.data;
+  }
+  currentProfile=profile||{role:'operator',email:currentUser.email};
+  window.currentUser=currentUser; window.currentProfile=currentProfile;
   if(currentProfile.role!=='admin'){ document.body.innerHTML='<div class=\"wrap\"><div class=\"card\"><h2>Acesso restrito</h2><p class=\"muted\">Seu usuário é operador. O painel de eventos é exclusivo para administradores.</p><a class=\"btn primary\" href=\"painel.html\" style=\"text-decoration:none\">Ir para painel de operação</a></div></div>'; return false; }
   return true;
 }
