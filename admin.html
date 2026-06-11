@@ -1,8 +1,141 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>dot. | Eventos</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;background:#070707;color:#f5f5f5;padding:20px}.wrap{max-width:1000px;margin:auto}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.logo{font-size:28px;font-weight:800}.card{background:#111;border:1px solid #252525;border-radius:18px;padding:16px;margin:14px 0}label{display:block;margin:12px 0 6px;color:#ddd;font-size:14px}input,select{padding:14px;border-radius:12px;border:1px solid #333;background:#090909;color:#fff;font-size:16px;width:100%}.row{display:grid;grid-template-columns:1.5fr .7fr .7fr .7fr;gap:10px}.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}.primary{background:#fff;color:#000}.ghost{background:#222;color:#fff;border:1px solid #333}.muted{color:#aaa}.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;border-radius:999px;padding:12px 18px;font-weight:800;opacity:0;pointer-events:none;transition:.22s}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #252525;padding:10px;text-align:left}.pill{border:1px solid #333;border-radius:999px;padding:4px 8px;font-size:12px}@media(max-width:760px){.row{grid-template-columns:1fr}table{font-size:13px}}</style></head><body><div id="toast" class="toast">Tudo certo</div><div class="wrap"><div class="top"><div><div class="logo">dot. eventos</div><div class="muted">Painel administrativo</div></div><div><button class="btn ghost" onclick="history.length>1?history.back():location.href='painel.html'">← Voltar</button> <a class="btn ghost" href="painel.html" style="text-decoration:none">Painel operação</a> <button class="btn ghost" onclick="logout()">Sair</button></div></div><div class="card"><h3>Criar evento</h3><div class="row"><div><label>Nome do evento</label><input id="name" placeholder="Ex.: SelfRun Natal" oninput="suggest()"></div><div><label>Prefixo</label><input id="prefix" maxlength="8" placeholder="SELF" oninput="upper(this)"></div><div><label>Valor</label><input id="price" inputmode="decimal" value="29,90"></div><div><label>Data</label><input id="date" type="date"></div></div><label>Cidade/local</label><input id="city" placeholder="Ex.: Natal/RN"><div style="margin-top:14px"><button class="btn primary" onclick="createEvent()">Criar evento</button></div><p class="muted">O link público será gerado automaticamente no formato: <strong>index.html?event=slug-do-evento</strong></p></div><div class="card"><h3>Eventos cadastrados</h3><div id="list"></div></div></div><script>
-const SUPABASE_URL='https://tamldzilxnsaoxfpjugr.supabase.co';const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbWxkemlseG5zYW94ZnBqdWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODM5MzksImV4cCI6MjA5NjY1OTkzOX0.gZ3gaMpcNXWEPidv2U3mhvMfCMQfvk_aVHQLI_JbEjc';const db=supabase.createClient(SUPABASE_URL,KEY);let events=[];
-async function requireLogin(){const{data}=await db.auth.getSession();if(!data.session){location.href='login.html';return false}return true}async function logout(){await db.auth.signOut();location.href='login.html'}function upper(el){el.value=el.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8)}function slugify(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}function suggest(){if(!prefix.value.trim()){const words=name.value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().match(/[A-Z0-9]+/g)||[];prefix.value=(words.length===1?words[0].slice(0,4):words.map(w=>w[0]).join('').slice(0,5))}}
-async function createEvent(){const n=name.value.trim();if(!n){showToast('Informe o nome');return}let slug=slugify(n);const p=(prefix.value.trim()||'DOT').toUpperCase();const val=Number(String(price.value).replace(',','.'))||29.90;const {data:existing}=await db.from('events').select('slug').eq('slug',slug).maybeSingle();if(existing){slug=slug+'-'+Date.now().toString().slice(-4)}const payload={name:n,slug,code_prefix:p,base_price:val,city:city.value.trim()||null,event_date:date.value||null,is_active:true};const {data,error}=await db.from('events').insert(payload).select().single();if(error){console.error('Erro create event:',error,payload);showToast('Erro ao criar evento: '+(error.message||'verifique o schema'));return}showToast('Evento criado: '+data.code_prefix);name.value='';prefix.value='';city.value='';date.value='';price.value='29,90';await loadEvents()}
-async function toggleActive(id,current){const{error}=await db.from('events').update({is_active:!current}).eq('id',id);if(error){showToast('Erro ao atualizar');return}loadEvents()}
-async function loadEvents(){const{data,error}=await db.from('events').select('*').order('created_at',{ascending:false});if(error){list.innerHTML='Erro: '+error.message;return}events=data||[];list.innerHTML=`<table><thead><tr><th>Evento</th><th>Prefixo</th><th>Valor</th><th>Status</th><th>Links</th><th></th></tr></thead><tbody>${events.map(e=>{const url=location.origin+location.pathname.replace('admin.html','index.html')+'?event='+encodeURIComponent(e.slug);return `<tr><td><strong>${e.name}</strong><br><span class="muted">${e.slug}</span></td><td>${e.code_prefix||'DOT'}</td><td>R$ ${Number(e.base_price).toFixed(2).replace('.',',')}</td><td><span class="pill">${e.is_active?'Ativo':'Inativo'}</span></td><td><a style="color:#fff" href="${url}" target="_blank">Cadastro</a></td><td><button class="btn ghost" onclick="toggleActive('${e.id}',${e.is_active})">${e.is_active?'Desativar':'Ativar'}</button></td></tr>`}).join('')}</tbody></table>`}
-function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(window.__t);window.__t=setTimeout(()=>toast.classList.remove('show'),1800)}requireLogin().then(ok=>{if(ok)loadEvents()});
-</script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>dot. | Eventos</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;background:#070707;color:#f5f5f5;padding:20px}
+    .wrap{max-width:1000px;margin:auto}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.logo{font-size:28px;font-weight:800}
+    .card{background:#111;border:1px solid #252525;border-radius:18px;padding:16px;margin:14px 0}label{display:block;margin:12px 0 6px;color:#ddd;font-size:14px}
+    input,select{box-sizing:border-box;padding:14px;border-radius:12px;border:1px solid #333;background:#090909;color:#fff;font-size:16px;width:100%}
+    .row{display:grid;grid-template-columns:1.5fr .7fr .7fr .7fr;gap:10px}.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;display:inline-block}
+    .primary{background:#fff;color:#000}.ghost{background:#222;color:#fff;border:1px solid #333}.muted{color:#aaa}.error{color:#ffb4b4}.ok{color:#c8ffc8}
+    .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;border-radius:999px;padding:12px 18px;font-weight:800;opacity:0;pointer-events:none;transition:.22s;z-index:5}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #252525;padding:10px;text-align:left}.pill{border:1px solid #333;border-radius:999px;padding:4px 8px;font-size:12px}
+    @media(max-width:760px){.row{grid-template-columns:1fr}table{font-size:13px}.top>div:last-child{display:flex;gap:8px;flex-wrap:wrap}}
+  </style>
+</head>
+<body>
+  <div id="toast" class="toast">Tudo certo</div>
+  <div class="wrap">
+    <div class="top">
+      <div><div class="logo">dot. eventos</div><div class="muted">Painel administrativo</div></div>
+      <div>
+        <button class="btn ghost" type="button" id="backBtn">← Voltar</button>
+        <a class="btn ghost" href="painel.html" style="text-decoration:none">Painel operação</a>
+        <button class="btn ghost" type="button" id="logoutBtn">Sair</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Criar evento</h3>
+      <div class="row">
+        <div><label>Nome do evento</label><input id="eventName" placeholder="Ex.: SelfRun Natal"></div>
+        <div><label>Prefixo</label><input id="eventPrefix" maxlength="8" placeholder="SELF"></div>
+        <div><label>Valor</label><input id="eventPrice" inputmode="decimal" value="29,90"></div>
+        <div><label>Data</label><input id="eventDate" type="date"></div>
+      </div>
+      <label>Cidade/local</label><input id="eventCity" placeholder="Ex.: Natal/RN">
+      <div style="margin-top:14px"><button class="btn primary" type="button" id="createEventBtn">Criar evento</button></div>
+      <p id="formMsg" class="muted">O link público será gerado automaticamente no formato: <strong>index.html?event=slug-do-evento</strong></p>
+    </div>
+
+    <div class="card"><h3>Eventos cadastrados</h3><div id="list">Carregando...</div></div>
+  </div>
+
+<script>
+const SUPABASE_URL='https://tamldzilxnsaoxfpjugr.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbWxkemlseG5zYW94ZnBqdWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODM5MzksImV4cCI6MjA5NjY1OTkzOX0.gZ3gaMpcNXWEPidv2U3mhvMfCMQfvk_aVHQLI_JbEjc';
+const db=supabase.createClient(SUPABASE_URL,KEY);
+let events=[];
+
+const $ = (id) => document.getElementById(id);
+const els = {
+  name: $('eventName'), prefix: $('eventPrefix'), price: $('eventPrice'), date: $('eventDate'), city: $('eventCity'),
+  list: $('list'), toast: $('toast'), formMsg: $('formMsg'), createBtn: $('createEventBtn')
+};
+
+async function requireLogin(){
+  const {data}=await db.auth.getSession();
+  if(!data.session){ location.href='login.html'; return false; }
+  return true;
+}
+async function logout(){ await db.auth.signOut(); location.href='login.html'; }
+function sanitizePrefix(value){ return String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8); }
+function slugify(value){ return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+function suggestPrefix(){
+  const current = sanitizePrefix(els.prefix.value);
+  els.prefix.value = current;
+  if(current) return;
+  const value = String(els.name.value||'');
+  const words = value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().match(/[A-Z0-9]+/g)||[];
+  els.prefix.value = sanitizePrefix(words.length===1 ? words[0].slice(0,4) : words.map(w=>w[0]).join('').slice(0,5));
+}
+function showToast(msg){ els.toast.textContent=msg; els.toast.classList.add('show'); clearTimeout(window.__t); window.__t=setTimeout(()=>els.toast.classList.remove('show'),2200); }
+function setFormMessage(msg, type='muted'){ els.formMsg.className=type; els.formMsg.innerHTML=msg; }
+
+async function createDotEvent(){
+  const n = String(els.name.value||'').trim();
+  if(!n){ showToast('Informe o nome do evento'); els.name.focus(); return; }
+  let slug = slugify(n);
+  if(!slug) slug = 'evento-' + Date.now().toString().slice(-5);
+  const p = sanitizePrefix(els.prefix.value || 'DOT') || 'DOT';
+  const val = Number(String(els.price.value||'29,90').replace(',','.')) || 29.90;
+  const payload = { name:n, slug, code_prefix:p, base_price:val, city:String(els.city.value||'').trim()||null, event_date:els.date.value||null, is_active:true };
+
+  els.createBtn.disabled = true;
+  els.createBtn.textContent = 'Criando...';
+  setFormMessage('Criando evento...', 'muted');
+
+  try{
+    const {data:existing, error:checkError} = await db.from('events').select('slug').eq('slug',slug).maybeSingle();
+    if(checkError) throw checkError;
+    if(existing) payload.slug = slug + '-' + Date.now().toString().slice(-4);
+
+    const {data,error}=await db.from('events').insert(payload).select('*').single();
+    if(error) throw error;
+
+    showToast('Evento criado: '+(data.code_prefix||p));
+    setFormMessage('✅ Evento criado com sucesso.', 'ok');
+    els.name.value=''; els.prefix.value=''; els.city.value=''; els.date.value=''; els.price.value='29,90';
+    await loadEvents();
+  }catch(error){
+    console.error('Erro ao criar evento:', error, payload);
+    const msg = error && error.message ? error.message : 'erro desconhecido';
+    setFormMessage('Erro ao criar evento: '+msg, 'error');
+    showToast('Erro ao criar evento');
+  }finally{
+    els.createBtn.disabled = false;
+    els.createBtn.textContent = 'Criar evento';
+  }
+}
+
+async function toggleActive(id,current){
+  const {error}=await db.from('events').update({is_active:!current}).eq('id',id);
+  if(error){ console.error(error); showToast('Erro ao atualizar'); return; }
+  loadEvents();
+}
+async function loadEvents(){
+  const {data,error}=await db.from('events').select('*').order('created_at',{ascending:false});
+  if(error){ els.list.innerHTML='<span class="error">Erro: '+error.message+'</span>'; return; }
+  events=data||[];
+  if(!events.length){ els.list.innerHTML='<p class="muted">Nenhum evento cadastrado ainda.</p>'; return; }
+  els.list.innerHTML=`<table><thead><tr><th>Evento</th><th>Prefixo</th><th>Valor</th><th>Status</th><th>Links</th><th></th></tr></thead><tbody>${events.map(e=>{
+    const url=location.origin+location.pathname.replace('admin.html','index.html')+'?event='+encodeURIComponent(e.slug||'');
+    return `<tr><td><strong>${e.name||''}</strong><br><span class="muted">${e.slug||''}</span></td><td>${e.code_prefix||'DOT'}</td><td>R$ ${Number(e.base_price||0).toFixed(2).replace('.',',')}</td><td><span class="pill">${e.is_active?'Ativo':'Inativo'}</span></td><td><a style="color:#fff" href="${url}" target="_blank">Cadastro</a></td><td><button class="btn ghost" type="button" onclick="toggleActive('${e.id}',${!!e.is_active})">${e.is_active?'Desativar':'Ativar'}</button></td></tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  $('backBtn').addEventListener('click',()=>{ history.length>1 ? history.back() : location.href='painel.html'; });
+  $('logoutBtn').addEventListener('click',logout);
+  els.createBtn.addEventListener('click',createDotEvent);
+  els.name.addEventListener('input',suggestPrefix);
+  els.prefix.addEventListener('input',()=>{ els.prefix.value=sanitizePrefix(els.prefix.value); });
+  requireLogin().then(ok=>{ if(ok) loadEvents(); });
+});
+</script>
+</body>
+</html>
