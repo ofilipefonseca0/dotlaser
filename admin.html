@@ -10,7 +10,7 @@ button,.btn{border:0;border-radius:14px;padding:12px 15px;background:#f2f2f3;col
 .debug{font-family:ui-monospace,Menlo,monospace;white-space:pre-wrap;background:#050508;border:1px dashed #444;border-radius:16px;padding:14px;color:#ddd;font-size:12px}
 .table{width:100%;border-collapse:collapse;margin-top:12px}.table th,.table td{text-align:left;border-bottom:1px solid var(--line);padding:10px 8px;font-size:13px}.table th{color:var(--muted);font-weight:600}.sectionTitle{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 @media(max-width:760px){.grid{grid-template-columns:1fr 1fr}.top{align-items:flex-start;flex-direction:column}.ath{align-items:flex-start;flex-direction:column}}
-</style></head><body><div class="wrap"><div class="top"><div><div class="logo">dot<span>.</span> admin</div><div class="muted" id="who"></div></div><div class="row"><a class="btn btn2" href="painel.html">Voltar ao painel</a><button class="btn2" onclick="logout()">Sair</button></div></div><div id="blocked" class="card hidden"><h2>Acesso restrito</h2><p>Seu usuário não está como administrador.</p><pre id="debug" class="debug"></pre></div><div id="adminArea" class="hidden"><div class="card"><h2>Criar evento</h2><div class="grid"><div><label>Nome do evento</label><input id="name" placeholder="SelfRun Natal" oninput="suggestPrefix()"></div><div><label>Prefixo</label><input id="code_prefix" maxlength="10" placeholder="SELF"></div><div><label>Valor base</label><input id="base_price" type="number" step="0.01" value="29.90"></div><div><label>Data</label><input id="event_date" type="date"></div></div><label>Cidade</label><input id="city" placeholder="Natal/RN"><br><br><button onclick="createDotEvent()">Criar evento</button><p id="msg" class="muted"></p></div><div class="card"><h2>Eventos</h2><div id="events"></div></div>
+</style></head><body><div class="wrap"><div class="top"><div><div class="logo">dot<span>.</span> admin</div><div class="muted" id="who"></div></div><div class="row"><a class="btn btn2" href="painel.html">Voltar ao painel</a><button class="btn2" onclick="logout()">Sair</button></div></div><div id="blocked" class="card hidden"><h2>Acesso restrito</h2><p>Seu usuário não está como administrador.</p><pre id="debug" class="debug"></pre></div><div id="adminArea" class="hidden"><div class="card"><h2>Criar evento</h2><div class="grid"><div><label>Nome do evento</label><input id="name" placeholder="SelfRun Natal" oninput="suggestPrefix()"></div><div><label>Prefixo</label><input id="code_prefix" maxlength="10" placeholder="SELF"></div><div><label>Valor base</label><input id="base_price" type="number" step="0.01" value="29.90"></div><div><label>Data</label><input id="event_date" type="date"></div></div><label style="display:flex;gap:10px;align-items:center;margin-top:14px"><input id="is_free" type="checkbox" style="width:auto" onchange="toggleFreeEvent()"> Gravação gratuita neste evento</label><p class="muted">Quando marcada, o valor fica zerado na página do atleta.</p><br><button onclick="createDotEvent()">Criar evento</button><p id="msg" class="muted"></p></div><div class="card"><h2>Eventos</h2><div id="events"></div></div>
 <div class="card">
   <div class="sectionTitle"><h2>Cupons de desconto</h2><button class="btn2" onclick="loadCoupons()">Atualizar cupons</button></div>
   <div class="grid">
@@ -89,19 +89,22 @@ function suggestPrefix(){
  const p=raw.split(/\s+/).map(w=>w[0]).join('').slice(0,5).toUpperCase();
  document.getElementById('code_prefix').value=p||'DOT';
 }
+function toggleFreeEvent(){const free=document.getElementById('is_free').checked;const price=document.getElementById('base_price');price.disabled=free;if(free)price.value='0.00';else if(Number(price.value||0)===0)price.value='29.90';}
 async function createDotEvent(){
+ const free=document.getElementById('is_free').checked;
  const payload={
   name:document.getElementById('name').value.trim(),
   code_prefix:(document.getElementById('code_prefix').value||'DOT').replace(/[^A-Za-z0-9]/g,'').toUpperCase(),
-  base_price:Number(document.getElementById('base_price').value||0),
-  city:document.getElementById('city').value.trim()||null,
+  base_price:free?0:Number(document.getElementById('base_price').value||0),
   event_date:document.getElementById('event_date').value||null,
-  is_active:true
+  is_active:true,
+  is_free:free
  };
  if(!payload.name) return showToast('Informe o nome do evento','err');
  const {data,error}=await window.sb.from('events').insert(payload).select().single();
  if(error){ document.getElementById('msg').textContent='Erro ao criar evento: '+error.message; return showToast(error.message,'err'); }
  document.getElementById('msg').textContent='Evento criado: '+data.name;
+ document.getElementById('is_free').checked=false; toggleFreeEvent();
  showToast('Evento criado');
  await loadEvents();
  await loadCoupons();
@@ -110,7 +113,7 @@ async function createDotEvent(){
 async function loadEvents(){
  const {data,error}=await window.sb.from('events').select('*').order('created_at',{ascending:false});
  if(error) return showToast(error.message,'err');
- document.getElementById('events').innerHTML=(data||[]).map(e=>`<div class="order"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><b>${e.name}</b><div class="muted">${e.code_prefix||'DOT'} • ${e.city||''} • ${e.event_date||''} • ${money(e.base_price)}</div><span class="pill">${e.is_active?'ativo':'inativo'}</span></div><div class="row"><button class="${e.is_active?'danger':'ok'}" onclick="toggleEvent('${e.id}', ${!e.is_active})">${e.is_active?'Desativar':'Ativar'}</button></div></div></div>`).join('')||'<p class="muted">Nenhum evento.</p>';
+ document.getElementById('events').innerHTML=(data||[]).map(e=>`<div class="order"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><b>${e.name}</b><div class="muted">${e.code_prefix||'DOT'} • ${e.event_date||''} • ${e.is_free?'Gratuito':money(e.base_price)}</div><span class="pill">${e.is_active?'ativo':'inativo'}</span></div><div class="row"><button class="${e.is_active?'danger':'ok'}" onclick="toggleEvent('${e.id}', ${!e.is_active})">${e.is_active?'Desativar':'Ativar'}</button></div></div></div>`).join('')||'<p class="muted">Nenhum evento.</p>';
 }
 async function toggleEvent(id, active){
  const {error}=await window.sb.from('events').update({is_active:active, updated_at:new Date().toISOString()}).eq('id',id);
