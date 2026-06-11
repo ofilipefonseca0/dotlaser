@@ -113,7 +113,7 @@ async function createDotEvent(){
 async function loadEvents(){
  const {data,error}=await window.sb.from('events').select('*').order('created_at',{ascending:false});
  if(error) return showToast(error.message,'err');
- document.getElementById('events').innerHTML=(data||[]).map(e=>`<div class="order"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><b>${e.name}</b><div class="muted">${e.code_prefix||'DOT'} • ${e.event_date||''} • ${e.is_free?'Gratuito':money(e.base_price)}</div><span class="pill">${e.is_active?'ativo':'inativo'}</span></div><div class="row"><button class="${e.is_active?'danger':'ok'}" onclick="toggleEvent('${e.id}', ${!e.is_active})">${e.is_active?'Desativar':'Ativar'}</button></div></div></div>`).join('')||'<p class="muted">Nenhum evento.</p>';
+ document.getElementById('events').innerHTML=(data||[]).map(e=>`<div class="order"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><b>${e.name}</b><div class="muted">${e.code_prefix||'DOT'} • ${e.event_date||''} • ${e.is_free?'Gratuito':money(e.base_price)}</div><span class="pill">${e.is_active?'ativo':'inativo'}</span></div><div class="row"><button class="${e.is_active?'danger':'ok'}" onclick="toggleEvent('${e.id}', ${!e.is_active})">${e.is_active?'Desativar':'Ativar'}</button><button class="danger" onclick="deleteEvent('${e.id}', '${String(e.name||'').replace(/'/g,\"\\'\")}')">Excluir</button></div></div></div>`).join('')||'<p class="muted">Nenhum evento.</p>';
 }
 async function toggleEvent(id, active){
  const {error}=await window.sb.from('events').update({is_active:active, updated_at:new Date().toISOString()}).eq('id',id);
@@ -122,6 +122,14 @@ async function toggleEvent(id, active){
  await loadEvents();
  await loadCoupons();
  await loadVouchers();
+}
+async function deleteEvent(id, name){
+ const ok = confirm(`Excluir definitivamente o evento ${name || ''}?\n\nEssa ação não pode ser desfeita. Se houver pedidos vinculados, o Supabase pode bloquear a exclusão.`);
+ if(!ok) return;
+ const {error}=await window.sb.from('events').delete().eq('id',id);
+ if(error) return showToast('Erro ao excluir evento: '+error.message,'err');
+ showToast('Evento excluído definitivamente');
+ await loadEvents();
 }
 
 async function createCoupon(){
@@ -138,12 +146,18 @@ async function createCoupon(){
 async function loadCoupons(){
  const {data,error}=await window.sb.from('coupons').select('*').order('created_at',{ascending:false});
  if(error){ document.getElementById('coupons').innerHTML='<p class="muted">Erro ao carregar cupons: '+error.message+'</p>'; return; }
- document.getElementById('coupons').innerHTML=(data||[]).length?`<table class="table"><thead><tr><th>Código</th><th>Tipo</th><th>Desconto</th><th>Status</th><th>Ações</th></tr></thead><tbody>${data.map(c=>`<tr><td><b>${c.code}</b></td><td>${c.discount_type==='fixed'?'Valor fixo':'Percentual'}</td><td>${c.discount_type==='fixed'?money(c.discount_value):Number(c.discount_value||0)+'%'}</td><td>${c.active?'Ativo':'Inativo'}</td><td><button class="${c.active?'danger':'ok'}" onclick="toggleCoupon('${c.id}', ${!c.active})">${c.active?'Desativar':'Ativar'}</button></td></tr>`).join('')}</tbody></table>`:'<p class="muted">Nenhum cupom criado.</p>';
+ document.getElementById('coupons').innerHTML=(data||[]).length?`<table class="table"><thead><tr><th>Código</th><th>Tipo</th><th>Desconto</th><th>Status</th><th>Ações</th></tr></thead><tbody>${data.map(c=>`<tr><td><b>${c.code}</b></td><td>${c.discount_type==='fixed'?'Valor fixo':'Percentual'}</td><td>${c.discount_type==='fixed'?money(c.discount_value):Number(c.discount_value||0)+'%'}</td><td>${c.active?'Ativo':'Inativo'}</td><td><div class="row"><button class="${c.active?'danger':'ok'}" onclick="toggleCoupon('${c.id}', ${!c.active})">${c.active?'Desativar':'Ativar'}</button><button class="danger" onclick="deleteCoupon('${c.id}', '${c.code}')">Excluir</button></div></td></tr>`).join('')}</tbody></table>`:'<p class="muted">Nenhum cupom criado.</p>';
 }
 async function toggleCoupon(id, active){
  const {error}=await window.sb.from('coupons').update({active}).eq('id',id);
  if(error) return showToast(error.message,'err');
  showToast(active?'Cupom ativado':'Cupom desativado'); await loadCoupons();
+}
+async function deleteCoupon(id, code){
+ if(!confirm(`Excluir definitivamente o cupom ${code}?\n\nEssa ação não pode ser desfeita.`)) return;
+ const {error}=await window.sb.from('coupons').delete().eq('id',id);
+ if(error) return showToast('Erro ao excluir cupom: '+error.message,'err');
+ showToast('Cupom excluído definitivamente'); await loadCoupons();
 }
 async function createVoucher(){
  const code=(document.getElementById('voucher_code').value||'').trim().toUpperCase();
@@ -160,12 +174,18 @@ async function createVoucher(){
 async function loadVouchers(){
  const {data,error}=await window.sb.from('vouchers').select('*').order('created_at',{ascending:false});
  if(error){ document.getElementById('vouchers').innerHTML='<p class="muted">Erro ao carregar vouchers: '+error.message+'</p>'; return; }
- document.getElementById('vouchers').innerHTML=(data||[]).length?`<table class="table"><thead><tr><th>Código</th><th>Assessoria</th><th>Usos</th><th>Status</th><th>Ações</th></tr></thead><tbody>${data.map(v=>`<tr><td><b>${v.code}</b></td><td>${v.team_name||''}</td><td>${Number(v.uses_count||0)} / ${Number(v.uses_limit||0)}</td><td>${v.active?'Ativo':'Inativo'}</td><td><button class="${v.active?'danger':'ok'}" onclick="toggleVoucher('${v.id}', ${!v.active})">${v.active?'Desativar':'Ativar'}</button></td></tr>`).join('')}</tbody></table>`:'<p class="muted">Nenhum voucher criado.</p>';
+ document.getElementById('vouchers').innerHTML=(data||[]).length?`<table class="table"><thead><tr><th>Código</th><th>Assessoria</th><th>Usos</th><th>Status</th><th>Ações</th></tr></thead><tbody>${data.map(v=>`<tr><td><b>${v.code}</b></td><td>${v.team_name||''}</td><td>${Number(v.uses_count||0)} / ${Number(v.uses_limit||0)}</td><td>${v.active?'Ativo':'Inativo'}</td><td><div class="row"><button class="${v.active?'danger':'ok'}" onclick="toggleVoucher('${v.id}', ${!v.active})">${v.active?'Desativar':'Ativar'}</button><button class="danger" onclick="deleteVoucher('${v.id}', '${v.code}')">Excluir</button></div></td></tr>`).join('')}</tbody></table>`:'<p class="muted">Nenhum voucher criado.</p>';
 }
 async function toggleVoucher(id, active){
  const {error}=await window.sb.from('vouchers').update({active}).eq('id',id);
  if(error) return showToast(error.message,'err');
  showToast(active?'Voucher ativado':'Voucher desativado'); await loadVouchers();
+}
+async function deleteVoucher(id, code){
+ if(!confirm(`Excluir definitivamente o voucher ${code}?\n\nEssa ação não pode ser desfeita.`)) return;
+ const {error}=await window.sb.from('vouchers').delete().eq('id',id);
+ if(error) return showToast('Erro ao excluir voucher: '+error.message,'err');
+ showToast('Voucher excluído definitivamente'); await loadVouchers();
 }
 
 async function loadArchived(){
