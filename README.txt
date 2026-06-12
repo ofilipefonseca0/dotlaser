@@ -27,3 +27,9 @@ Mudanças desta versão:
 
 Observação:
 Se quiser manter compatibilidade temporária, você pode deixar dashboard.html no GitHub, mas ele não é mais necessário para o fluxo principal.
+
+
+v8.2:
+- Adicionada opção Editar nos eventos dentro do painel admin.
+- Permite alterar nome, prefixo, valor, data e gravação gratuita.
+- Mantém ativar/desativar e excluir com confirmação.
