@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "painel.dotlaser.com.br"
+        }
+      ],
+      "destination": "/painel.html"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "admin.dotlaser.com.br"
+        }
+      ],
+      "destination": "/admin.html"
+    }
+  ]
+}
