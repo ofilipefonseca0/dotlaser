@@ -13,25 +13,28 @@ button,.btn{border:0;border-radius:14px;padding:12px 15px;background:#f2f2f3;col
 </style></head><body><div class="wrap"><div class="top"><div><div class="logo">dot<span>.</span> admin</div><div class="muted" id="who"></div></div><div class="row"><a class="btn btn2" href="painel.html">Voltar ao painel</a><button class="btn2" onclick="logout()">Sair</button></div></div><div id="blocked" class="card hidden"><h2>Acesso restrito</h2><p>Seu usuário não está como administrador.</p><pre id="debug" class="debug"></pre></div><div id="adminArea" class="hidden"><div class="card"><div class="row"><button class="btn2" onclick="document.getElementById('dashboardSection').scrollIntoView({behavior:'smooth'})">Dashboard</button><button class="btn2" onclick="document.getElementById('eventFormTitle').scrollIntoView({behavior:'smooth'})">Eventos</button><button class="btn2" onclick="document.getElementById('couponsSection').scrollIntoView({behavior:'smooth'})">Cupons</button><button class="btn2" onclick="document.getElementById('vouchersSection').scrollIntoView({behavior:'smooth'})">Vouchers</button></div></div><div id="dashboardSection" class="card"><div class="sectionTitle"><h2>Dashboard operacional</h2><button class="btn2" onclick="loadDashboard()">Atualizar</button></div><div class="grid"><div><label>Evento</label><select id="dashEventFilter" onchange="loadDashboard()"><option value="">Todos os eventos</option></select></div><div><label>Período</label><select id="dashPeriodFilter" onchange="loadDashboard()"><option value="all">Tudo</option><option value="today">Hoje</option><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option></select></div><div style="display:flex;align-items:flex-end"><button onclick="exportDashboardCSV()">Exportar CSV</button></div></div><br><div class="grid"><div class="metric"><b id="mOrders" class="big">0</b><span>Pedidos</span></div><div class="metric"><b id="mAthletes" class="big">0</b><span>Atletas</span></div><div class="metric"><b id="mEngraved" class="big">0</b><span>Gravados</span></div><div class="metric"><b id="mRevenue" class="big">R$ 0,00</b><span>Receita</span></div></div><br><div class="grid"><div class="metric"><b id="mPending">0</b><span>Pendentes de gravação</span></div><div class="metric"><b id="mProgress">0%</b><span>Progresso</span></div><div class="metric"><b id="mAvg">R$ 0,00</b><span>Ticket médio</span></div><div class="metric"><b id="mFree">0</b><span>Pedidos grátis/voucher</span></div></div><br><div class="grid"><div class="card" style="margin:0"><div class="sectionTitle"><h3>Status de pagamento</h3></div><div id="paymentBars" class="bars"></div></div><div class="card" style="margin:0"><div class="sectionTitle"><h3>Resumo por evento</h3></div><div id="eventSummaryTable"></div></div></div><br><div class="card" style="margin:0"><div class="sectionTitle"><h3>Pedidos recentes</h3></div><div id="recentOrdersTable"></div></div></div><div class="card"><h2 id="eventFormTitle">Criar evento</h2><input id="editing_event_id" type="hidden"><div class="grid"><div><label>Nome do evento</label><input id="name" placeholder="SelfRun Natal" oninput="suggestPrefix()"></div><div><label>Prefixo</label><input id="code_prefix" maxlength="10" placeholder="SELF"></div><div><label>Valor base</label><input id="base_price" type="number" step="0.01" value="29.90"></div><div><label>Data</label><input id="event_date" type="date"></div></div><label style="display:flex;gap:10px;align-items:center;margin-top:14px"><input id="is_free" type="checkbox" style="width:auto" onchange="toggleFreeEvent()"> Gravação gratuita neste evento</label><p class="muted">Quando marcada, o valor fica zerado na página do atleta.</p><br><div class="row"><button id="eventSubmitBtn" onclick="saveDotEvent()">Criar evento</button><button id="eventCancelBtn" class="btn2 hidden" onclick="cancelEditEvent()">Cancelar edição</button></div><p id="msg" class="muted"></p></div><div class="card"><h2>Eventos</h2><div id="events"></div></div>
 <div class="card" id="couponsSection">
   <div class="sectionTitle"><h2>Cupons de desconto</h2><button class="btn2" onclick="loadCoupons()">Atualizar cupons</button></div>
+  <input id="editing_coupon_id" type="hidden">
   <div class="grid">
     <div><label>Código do cupom</label><input id="coupon_code" placeholder="DOT10" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9_-]/g,'')"></div>
-    <div><label>Tipo</label><select id="coupon_type"><option value="percent">Percentual (%)</option><option value="fixed">Valor fixo (R$)</option></select></div>
+    <div><label>Tipo</label><select id="coupon_type"><option value="percent">Percentual (%)</option><option value="fixed">Valor fixo (R$)</option><option value="free">Gratuito</option></select></div>
     <div><label>Valor do desconto</label><input id="coupon_value" type="number" step="0.01" placeholder="10"></div>
-    <div style="display:flex;align-items:flex-end"><button onclick="createCoupon()">Criar cupom</button></div>
+    <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap"><button id="couponSubmitBtn" onclick="saveCoupon()">Criar cupom</button><button id="couponCancelBtn" class="btn2 hidden" onclick="cancelEditCoupon()">Cancelar edição</button></div>
   </div>
   <div id="coupons"></div>
 </div>
 <div class="card" id="vouchersSection">
   <div class="sectionTitle"><h2>Vouchers de assessoria</h2><button class="btn2" onclick="loadVouchers()">Atualizar vouchers</button></div>
+  <input id="editing_voucher_id" type="hidden">
   <div class="grid">
-    <div><label>Código do voucher</label><input id="voucher_code" placeholder="PULSE2026" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9_-]/g,'')"></div>
+    <div><label>Prefixo do voucher</label><input id="voucher_prefix" placeholder="PULSE" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9_-]/g,'')"></div>
     <div><label>Assessoria / equipe</label><input id="voucher_team" placeholder="Pulse Run Club"></div>
-    <div><label>Limite de usos</label><input id="voucher_limit" type="number" min="1" step="1" placeholder="50"></div>
-    <div style="display:flex;align-items:flex-end"><button onclick="createVoucher()">Criar voucher</button></div>
+    <div><label>Quantidade de vouchers</label><input id="voucher_qty" type="number" min="1" step="1" placeholder="50"></div>
+    <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap"><button id="voucherSubmitBtn" onclick="saveVoucherBatch()">Gerar vouchers</button><button id="voucherCancelBtn" class="btn2 hidden" onclick="cancelEditVoucher()">Cancelar edição</button></div>
   </div>
+  <p class="muted">Cada voucher gerado é de uso único. Ex.: PULSE-A7K9Q2.</p>
   <div id="vouchers"></div>
 </div>
-<div class="card"><h2>Pedidos arquivados</h2><button class="btn2" onclick="loadArchived()">Carregar arquivados</button><div id="archived"></div></div></div></div><div id="toast"></div><script>
+<script>
 const SUPABASE_URL = 'https://tamldzilxnsaoxfpjugr.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbWxkemlseG5zYW94ZnBqdWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODM5MzksImV4cCI6MjA5NjY1OTkzOX0.gZ3gaMpcNXWEPidv2U3mhvMfCMQfvk_aVHQLI_JbEjc';
 window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -176,21 +179,42 @@ async function deleteEvent(id, name){
  await loadDashboard();
 }
 
-async function createCoupon(){
+async function saveCoupon(){
+ const id=(document.getElementById('editing_coupon_id').value||'').trim();
  const code=(document.getElementById('coupon_code').value||'').trim().toUpperCase();
  const discount_type=document.getElementById('coupon_type').value;
- const discount_value=Number(document.getElementById('coupon_value').value||0);
+ const discount_value=discount_type==='free'?0:Number(document.getElementById('coupon_value').value||0);
  if(!code) return showToast('Informe o código do cupom','err');
- if(discount_value<=0) return showToast('Informe um valor de desconto válido','err');
- const {error}=await window.sb.from('coupons').insert({code,discount_type,discount_value,active:true});
- if(error) return showToast('Erro ao criar cupom: '+error.message,'err');
- document.getElementById('coupon_code').value=''; document.getElementById('coupon_value').value='';
- showToast('Cupom criado'); await loadCoupons();
+ if(discount_type!=='free' && discount_value<=0) return showToast('Informe um valor de desconto válido','err');
+ const payload={code,discount_type,discount_value,active:true};
+ const {error}=id
+   ? await window.sb.from('coupons').update(payload).eq('id',id)
+   : await window.sb.from('coupons').insert(payload);
+ if(error) return showToast((id?'Erro ao editar cupom: ':'Erro ao criar cupom: ')+error.message,'err');
+ cancelEditCoupon();
+ showToast(id?'Cupom atualizado':'Cupom criado'); await loadCoupons();
+}
+function editCoupon(id, code, type, value){
+ document.getElementById('editing_coupon_id').value=id;
+ document.getElementById('coupon_code').value=code||'';
+ document.getElementById('coupon_type').value=type||'percent';
+ document.getElementById('coupon_value').value=Number(value||0);
+ document.getElementById('couponSubmitBtn').textContent='Salvar cupom';
+ document.getElementById('couponCancelBtn').classList.remove('hidden');
+ document.getElementById('coupon_code').focus();
+}
+function cancelEditCoupon(){
+ document.getElementById('editing_coupon_id').value='';
+ document.getElementById('coupon_code').value='';
+ document.getElementById('coupon_type').value='percent';
+ document.getElementById('coupon_value').value='';
+ document.getElementById('couponSubmitBtn').textContent='Criar cupom';
+ document.getElementById('couponCancelBtn').classList.add('hidden');
 }
 async function loadCoupons(){
  const {data,error}=await window.sb.from('coupons').select('*').order('created_at',{ascending:false});
  if(error){ document.getElementById('coupons').innerHTML='<p class="muted">Erro ao carregar cupons: '+error.message+'</p>'; return; }
- document.getElementById('coupons').innerHTML=(data||[]).length?`<table class="table"><thead><tr><th>Código</th><th>Tipo</th><th>Desconto</th><th>Status</th><th>Ações</th></tr></thead><tbody>${data.map(c=>`<tr><td><b>${c.code}</b></td><td>${c.discount_type==='fixed'?'Valor fixo':'Percentual'}</td><td>${c.discount_type==='fixed'?money(c.discount_value):Number(c.discount_value||0)+'%'}</td><td>${c.active?'Ativo':'Inativo'}</td><td><div class="row"><button class="${c.active?'danger':'ok'}" onclick="toggleCoupon('${c.id}', ${!c.active})">${c.active?'Desativar':'Ativar'}</button><button class="danger" onclick="deleteCoupon('${c.id}')">Excluir</button></div></td></tr>`).join('')}</tbody></table>`:'<p class="muted">Nenhum cupom criado.</p>';
+ document.getElementById('coupons').innerHTML=(data||[]).length?`<table class="table"><thead><tr><th>Código</th><th>Tipo</th><th>Desconto</th><th>Status</th><th>Ações</th></tr></thead><tbody>${data.map(c=>`<tr><td><b>${esc(c.code)}</b></td><td>${c.discount_type==='fixed'?'Valor fixo':c.discount_type==='free'?'Gratuito':'Percentual'}</td><td>${c.discount_type==='fixed'?money(c.discount_value):c.discount_type==='free'?'100%':Number(c.discount_value||0)+'%'}</td><td>${c.active?'Ativo':'Inativo'}</td><td><div class="row"><button class="btn2" onclick="editCoupon('${c.id}', '${escAttr(c.code)}', '${escAttr(c.discount_type)}', '${Number(c.discount_value||0)}')">Editar</button><button class="${c.active?'danger':'ok'}" onclick="toggleCoupon('${c.id}', ${!c.active})">${c.active?'Desativar':'Ativar'}</button><button class="danger" onclick="deleteCoupon('${c.id}')">Excluir</button></div></td></tr>`).join('')}</tbody></table>`:'<p class="muted">Nenhum cupom criado.</p>';
 }
 async function toggleCoupon(id, active){
  const {error}=await window.sb.from('coupons').update({active}).eq('id',id);
@@ -205,22 +229,100 @@ async function deleteCoupon(id){
  if(error) return showToast('Erro ao excluir cupom: '+error.message,'err');
  showToast('Cupom excluído definitivamente'); await loadCoupons();
 }
-async function createVoucher(){
- const code=(document.getElementById('voucher_code').value||'').trim().toUpperCase();
+function randomCode(len=6){
+ const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+ let out=''; for(let i=0;i<len;i++) out+=chars[Math.floor(Math.random()*chars.length)];
+ return out;
+}
+function uuidLike(){return (crypto.randomUUID?crypto.randomUUID():(Date.now()+'-'+Math.random()).replace('.',''));}
+async function saveVoucherBatch(){
+ const editingId=(document.getElementById('editing_voucher_id').value||'').trim();
+ const prefix=(document.getElementById('voucher_prefix').value||'').trim().toUpperCase();
  const team_name=(document.getElementById('voucher_team').value||'').trim();
- const uses_limit=Number(document.getElementById('voucher_limit').value||0);
- if(!code) return showToast('Informe o código do voucher','err');
+ const qty=Number(document.getElementById('voucher_qty').value||0);
+ if(editingId){
+   const code=prefix;
+   if(!code) return showToast('Informe o código do voucher','err');
+   if(!team_name) return showToast('Informe a assessoria/equipe','err');
+   const {error}=await window.sb.from('vouchers').update({code,team_name,batch_prefix:code}).eq('id',editingId);
+   if(error) return showToast('Erro ao editar voucher: '+error.message,'err');
+   cancelEditVoucher(); showToast('Voucher atualizado'); await loadVouchers(); return;
+ }
+ if(!prefix) return showToast('Informe o prefixo dos vouchers','err');
  if(!team_name) return showToast('Informe a assessoria/equipe','err');
- if(uses_limit<=0) return showToast('Informe um limite de usos válido','err');
- const {error}=await window.sb.from('vouchers').insert({code,team_name,uses_limit,uses_count:0,active:true});
- if(error) return showToast('Erro ao criar voucher: '+error.message,'err');
- document.getElementById('voucher_code').value=''; document.getElementById('voucher_team').value=''; document.getElementById('voucher_limit').value='';
- showToast('Voucher criado'); await loadVouchers();
+ if(qty<=0) return showToast('Informe a quantidade de vouchers','err');
+ if(qty>500) return showToast('Gere no máximo 500 vouchers por vez','err');
+ const batch_id=uuidLike();
+ const rows=[]; const used=new Set();
+ while(rows.length<qty){
+   const code=`${prefix}-${randomCode(6)}`;
+   if(used.has(code)) continue;
+   used.add(code);
+   rows.push({code,team_name,uses_limit:1,uses_count:0,active:true,batch_id,batch_prefix:prefix});
+ }
+ const {error}=await window.sb.from('vouchers').insert(rows);
+ if(error) return showToast('Erro ao gerar vouchers: '+error.message,'err');
+ cancelEditVoucher();
+ showToast(`${qty} vouchers gerados`); await loadVouchers();
+}
+function editVoucher(id, code, team){
+ document.getElementById('editing_voucher_id').value=id;
+ document.getElementById('voucher_prefix').value=code||'';
+ document.getElementById('voucher_team').value=team||'';
+ document.getElementById('voucher_qty').value='1';
+ document.getElementById('voucher_qty').disabled=true;
+ document.getElementById('voucherSubmitBtn').textContent='Salvar voucher';
+ document.getElementById('voucherCancelBtn').classList.remove('hidden');
+ document.getElementById('voucher_prefix').focus();
+}
+function cancelEditVoucher(){
+ document.getElementById('editing_voucher_id').value='';
+ document.getElementById('voucher_prefix').value='';
+ document.getElementById('voucher_team').value='';
+ document.getElementById('voucher_qty').value='';
+ document.getElementById('voucher_qty').disabled=false;
+ document.getElementById('voucherSubmitBtn').textContent='Gerar vouchers';
+ document.getElementById('voucherCancelBtn').classList.add('hidden');
+}
+function groupVouchers(data){
+ const groups={};
+ (data||[]).forEach(v=>{
+   const key=v.batch_id || v.code;
+   if(!groups[key]) groups[key]={id:key,prefix:v.batch_prefix || (v.code||'').split('-')[0] || 'VOUCHER',team_name:v.team_name||'',items:[]};
+   groups[key].items.push(v);
+ });
+ return Object.values(groups).sort((a,b)=>String(b.items[0]?.created_at||'').localeCompare(String(a.items[0]?.created_at||'')));
 }
 async function loadVouchers(){
  const {data,error}=await window.sb.from('vouchers').select('*').order('created_at',{ascending:false});
  if(error){ document.getElementById('vouchers').innerHTML='<p class="muted">Erro ao carregar vouchers: '+error.message+'</p>'; return; }
- document.getElementById('vouchers').innerHTML=(data||[]).length?`<table class="table"><thead><tr><th>Código</th><th>Assessoria</th><th>Usos</th><th>Status</th><th>Ações</th></tr></thead><tbody>${data.map(v=>`<tr><td><b>${v.code}</b></td><td>${v.team_name||''}</td><td>${Number(v.uses_count||0)} / ${Number(v.uses_limit||0)}</td><td>${v.active?'Ativo':'Inativo'}</td><td><div class="row"><button class="${v.active?'danger':'ok'}" onclick="toggleVoucher('${v.id}', ${!v.active})">${v.active?'Desativar':'Ativar'}</button><button class="danger" onclick="deleteVoucher('${v.id}')">Excluir</button></div></td></tr>`).join('')}</tbody></table>`:'<p class="muted">Nenhum voucher criado.</p>';
+ const groups=groupVouchers(data||[]);
+ if(!groups.length){document.getElementById('vouchers').innerHTML='<p class="muted">Nenhum voucher criado.</p>';return;}
+ document.getElementById('vouchers').innerHTML=groups.map(g=>{
+   const total=g.items.length;
+   const used=g.items.filter(v=>Number(v.uses_count||0)>=Number(v.uses_limit||1)).length;
+   const active=g.items.filter(v=>v.active).length;
+   const codes=g.items.map(v=>v.code).join('\n');
+   return `<details class="order"><summary><b>${esc(g.prefix)}</b> • ${esc(g.team_name)} • ${used}/${total} usados • ${active} ativos</summary><div class="row" style="margin:10px 0"><button class="btn2" onclick="copyText(\`${escBacktick(codes)}\`, 'Vouchers copiados')">Copiar códigos</button><button class="btn2" onclick="toggleVoucherBatch('${g.id}', true)">Ativar lote</button><button class="danger" onclick="toggleVoucherBatch('${g.id}', false)">Desativar lote</button><button class="danger" onclick="deleteVoucherBatch('${g.id}', '${escAttr(g.prefix)}')">Excluir lote</button></div><table class="table"><thead><tr><th>Código</th><th>Assessoria</th><th>Uso</th><th>Status</th><th>Ações</th></tr></thead><tbody>${g.items.map(v=>`<tr><td><b>${esc(v.code)}</b></td><td>${esc(v.team_name||'')}</td><td>${Number(v.uses_count||0)>=Number(v.uses_limit||1)?'Usado':'Disponível'} ${v.used_at?'<br><span class="muted">'+new Date(v.used_at).toLocaleString('pt-BR')+'</span>':''}</td><td>${v.active?'Ativo':'Inativo'}</td><td><div class="row"><button class="btn2" onclick="editVoucher('${v.id}', '${escAttr(v.code)}', '${escAttr(v.team_name||'')}')">Editar</button><button class="${v.active?'danger':'ok'}" onclick="toggleVoucher('${v.id}', ${!v.active})">${v.active?'Desativar':'Ativar'}</button><button class="danger" onclick="deleteVoucher('${v.id}')">Excluir</button></div></td></tr>`).join('')}</tbody></table></details>`;
+ }).join('');
+}
+function copyText(text,msg='Copiado'){
+ navigator.clipboard?.writeText(text).then(()=>showToast(msg)).catch(()=>showToast('Não foi possível copiar','err'));
+}
+async function toggleVoucherBatch(batchId, active){
+ let q=window.sb.from('vouchers').update({active});
+ q=batchId.includes('-')?q.eq('batch_id',batchId):q.eq('code',batchId);
+ const {error}=await q;
+ if(error) return showToast('Erro ao atualizar lote: '+error.message,'err');
+ showToast(active?'Lote ativado':'Lote desativado'); await loadVouchers();
+}
+async function deleteVoucherBatch(batchId, prefix){
+ if(!confirm(`Excluir definitivamente o lote ${prefix}?\n\nEssa ação não pode ser desfeita.`)) return;
+ let q=window.sb.from('vouchers').delete();
+ q=batchId.includes('-')?q.eq('batch_id',batchId):q.eq('code',batchId);
+ const {error}=await q;
+ if(error) return showToast('Erro ao excluir lote: '+error.message,'err');
+ showToast('Lote excluído'); await loadVouchers();
 }
 async function toggleVoucher(id, active){
  const {error}=await window.sb.from('vouchers').update({active}).eq('id',id);
@@ -238,6 +340,8 @@ async function deleteVoucher(id){
 
 
 function esc(v){return String(v??'').replace(/[&<>"]/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]))}
+function escAttr(v){return String(v??'').replace(/[\'"<>]/g,'')}
+function escBacktick(v){return String(v??'').replace(/`/g,'\`').replace(/\$/g,'\$')}
 function pct(v,total){return total?Math.round((v/total)*100):0}
 let dashboardOrders=[];
 function applyDashboardPeriod(query){
