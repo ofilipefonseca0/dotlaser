@@ -8,9 +8,21 @@ input,select{width:100%;background:#09090d;color:var(--text);border:1px solid va
 button,.btn{border:0;border-radius:14px;padding:12px 15px;background:#f2f2f3;color:#050506;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;gap:8px;align-items:center}.btn2{background:#202027;color:#fff;border:1px solid var(--line)}.danger{background:#341a1d;color:#fff;border:1px solid #6b242d}.ok{background:#123323;color:#d8ffe9;border:1px solid #245d3d}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.muted{color:var(--muted)}.hidden{display:none!important}.order{border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;background:#0b0b0f}.pill{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:5px 10px;color:#bbb;font-size:12px;margin-right:6px}.ath{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:12px 0;gap:10px}.toast{display:none;position:fixed;right:22px;bottom:22px;background:#121218;border:1px solid var(--line);padding:14px 16px;border-radius:16px;z-index:99}.toast.err{border-color:#7b2931;color:#ffd7d7}.toast.ok{border-color:#245d3d;color:#d8ffe9}
 .debug{font-family:ui-monospace,Menlo,monospace;white-space:pre-wrap;background:#050508;border:1px dashed #444;border-radius:16px;padding:14px;color:#ddd;font-size:12px}
-.table{width:100%;border-collapse:collapse;margin-top:12px}.table th,.table td{text-align:left;border-bottom:1px solid var(--line);padding:10px 8px;font-size:13px}.table th{color:var(--muted);font-weight:600}.sectionTitle{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-@media(max-width:760px){.grid{grid-template-columns:1fr 1fr}.top{align-items:flex-start;flex-direction:column}.ath{align-items:flex-start;flex-direction:column}}
-</style></head><body><div class="wrap"><div class="top"><div><div class="logo">dot<span>.</span> admin</div><div class="muted" id="who"></div></div><div class="row"><a class="btn btn2" href="painel.html">Voltar ao painel</a><button class="btn2" onclick="logout()">Sair</button></div></div><div id="blocked" class="card hidden"><h2>Acesso restrito</h2><p>Seu usuário não está como administrador.</p><pre id="debug" class="debug"></pre></div><div id="adminArea" class="hidden"><div class="card"><h2>Criar evento</h2><div class="grid"><div><label>Nome do evento</label><input id="name" placeholder="SelfRun Natal" oninput="suggestPrefix()"></div><div><label>Prefixo</label><input id="code_prefix" maxlength="10" placeholder="SELF"></div><div><label>Valor base</label><input id="base_price" type="number" step="0.01" value="29.90"></div><div><label>Data</label><input id="event_date" type="date"></div></div><label style="display:flex;gap:10px;align-items:center;margin-top:14px"><input id="is_free" type="checkbox" style="width:auto" onchange="toggleFreeEvent()"> Gravação gratuita neste evento</label><p class="muted">Quando marcada, o valor fica zerado na página do atleta.</p><br><button onclick="createDotEvent()">Criar evento</button><p id="msg" class="muted"></p></div><div class="card"><h2>Eventos</h2><div id="events"></div></div>
+.table{width:100%;border-collapse:collapse;margin-top:12px}.table th,.table td{text-align:left;border-bottom:1px solid var(--line);padding:10px 8px;font-size:13px}.table th{color:var(--muted);font-weight:600}.sectionTitle{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.bar{height:12px;background:#09090d;border:1px solid var(--line);border-radius:999px;overflow:hidden}.bar>div{height:100%;background:#f2f2f3;border-radius:999px}.bars{display:grid;gap:12px}.barline{display:grid;grid-template-columns:160px 1fr 80px;gap:12px;align-items:center}.big{font-size:34px!important}
+@media(max-width:760px){.grid{grid-template-columns:1fr 1fr}.top{align-items:flex-start;flex-direction:column}.ath{align-items:flex-start;flex-direction:column}.barline{grid-template-columns:1fr}}
+</style></head><body><div class="wrap"><div class="top"><div><div class="logo">dot<span>.</span> admin</div><div class="muted" id="who"></div></div><div class="row"><a class="btn btn2" href="painel.html">Voltar ao painel</a><button class="btn2" onclick="logout()">Sair</button></div></div><div id="blocked" class="card hidden"><h2>Acesso restrito</h2><p>Seu usuário não está como administrador.</p><pre id="debug" class="debug"></pre></div><div id="adminArea" class="hidden"><div class="card" id="dashboardSection">
+  <div class="sectionTitle"><div><h2>Dashboard operacional</h2><p class="muted">Resumo financeiro e operacional dos pedidos da dot.</p></div><button class="btn2" onclick="loadDashboard()">Atualizar</button></div>
+  <div class="row">
+    <div style="min-width:260px;flex:1"><label>Evento</label><select id="dashEventFilter" onchange="loadDashboard()"><option value="">Todos os eventos</option></select></div>
+    <div style="min-width:180px"><label>Período</label><select id="dashPeriodFilter" onchange="loadDashboard()"><option value="all">Tudo</option><option value="today">Hoje</option><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option></select></div>
+    <div style="align-self:flex-end"><button onclick="exportDashboardCSV()">Exportar CSV</button></div>
+  </div>
+  <div class="grid" style="margin-top:14px"><div class="metric"><b id="dashOrders" class="big">0</b><span>Pedidos</span></div><div class="metric"><b id="dashAthletes" class="big">0</b><span>Atletas</span></div><div class="metric"><b id="dashEngraved" class="big">0</b><span>Gravados</span></div><div class="metric"><b id="dashRevenue" class="big">R$ 0,00</b><span>Receita</span></div></div>
+  <div class="grid" style="margin-top:12px"><div class="metric"><b id="dashPending">0</b><span>Pendentes de gravação</span></div><div class="metric"><b id="dashProgress">0%</b><span>Progresso</span></div><div class="metric"><b id="dashAvg">R$ 0,00</b><span>Ticket médio</span></div><div class="metric"><b id="dashFree">0</b><span>Pedidos grátis/voucher</span></div></div>
+  <div class="card" style="box-shadow:none;margin-top:14px"><div class="sectionTitle"><h3>Status de pagamento</h3><span class="muted">Distribuição por pedido</span></div><div id="dashPaymentBars" class="bars"></div></div>
+  <div class="card" style="box-shadow:none"><div class="sectionTitle"><h3>Resumo por evento</h3><span class="muted">Pedidos, atletas e receita</span></div><div id="dashEventTable"></div></div>
+  <div class="card" style="box-shadow:none"><div class="sectionTitle"><h3>Pedidos recentes</h3><span class="muted">Últimos pedidos ativos</span></div><div id="dashRecentTable"></div></div>
+</div><div class="card"><h2>Criar evento</h2><div class="grid"><div><label>Nome do evento</label><input id="name" placeholder="SelfRun Natal" oninput="suggestPrefix()"></div><div><label>Prefixo</label><input id="code_prefix" maxlength="10" placeholder="SELF"></div><div><label>Valor base</label><input id="base_price" type="number" step="0.01" value="29.90"></div><div><label>Data</label><input id="event_date" type="date"></div></div><label style="display:flex;gap:10px;align-items:center;margin-top:14px"><input id="is_free" type="checkbox" style="width:auto" onchange="toggleFreeEvent()"> Gravação gratuita neste evento</label><p class="muted">Quando marcada, o valor fica zerado na página do atleta.</p><br><button onclick="createDotEvent()">Criar evento</button><p id="msg" class="muted"></p></div><div class="card"><h2>Eventos</h2><div id="events"></div></div>
 <div class="card">
   <div class="sectionTitle"><h2>Cupons de desconto</h2><button class="btn2" onclick="loadCoupons()">Atualizar cupons</button></div>
   <div class="grid">
@@ -80,6 +92,8 @@ async function init(){
  }
  document.getElementById('adminArea').classList.remove('hidden');
  await loadEvents();
+ await loadDashboardEvents();
+ await loadDashboard();
  await loadCoupons();
  await loadVouchers();
 }
@@ -107,6 +121,8 @@ async function createDotEvent(){
  document.getElementById('is_free').checked=false; toggleFreeEvent();
  showToast('Evento criado');
  await loadEvents();
+ await loadDashboardEvents();
+ await loadDashboard();
  await loadCoupons();
  await loadVouchers();
 }
@@ -120,6 +136,8 @@ async function toggleEvent(id, active){
  if(error) return showToast(error.message,'err');
  showToast(active?'Evento ativado':'Evento desativado');
  await loadEvents();
+ await loadDashboardEvents();
+ await loadDashboard();
  await loadCoupons();
  await loadVouchers();
 }
@@ -190,6 +208,65 @@ async function deleteVoucher(id){
  const {error}=await window.sb.from('vouchers').delete().eq('id',id);
  if(error) return showToast('Erro ao excluir voucher: '+error.message,'err');
  showToast('Voucher excluído definitivamente'); await loadVouchers();
+}
+
+
+let dashboardOrders=[];
+function esc(v){return String(v??'').replace(/[&<>"]/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]))}
+function pct(v,total){return total?Math.round((v/total)*100):0}
+async function loadDashboardEvents(){
+ const {data,error}=await window.sb.from('events').select('id,name,code_prefix,is_active').order('created_at',{ascending:false});
+ if(error){showToast('Erro ao carregar eventos do dashboard: '+error.message,'err');return}
+ const sel=document.getElementById('dashEventFilter');
+ if(!sel) return;
+ sel.innerHTML='<option value="">Todos os eventos</option>'+(data||[]).map(e=>`<option value="${e.id}">${esc(e.name)} (${esc(e.code_prefix||'DOT')})${e.is_active?'':' • inativo'}</option>`).join('');
+}
+function applyDashboardPeriod(query){
+ const p=document.getElementById('dashPeriodFilter')?.value || 'all';
+ if(p==='today'){const d=new Date();d.setHours(0,0,0,0);return query.gte('created_at',d.toISOString())}
+ if(p==='7'||p==='30'){const d=new Date();d.setDate(d.getDate()-Number(p));return query.gte('created_at',d.toISOString())}
+ return query;
+}
+async function loadDashboard(){
+ let query=window.sb.from('orders').select('*, events(id,name,code_prefix), athletes(*)').eq('archived',false).order('created_at',{ascending:false});
+ const ev=document.getElementById('dashEventFilter')?.value;
+ if(ev) query=query.eq('event_id',ev);
+ query=applyDashboardPeriod(query);
+ const {data,error}=await query;
+ if(error){showToast('Erro no dashboard: '+error.message,'err');return}
+ dashboardOrders=data||[];
+ renderDashboard();
+}
+function renderDashboard(){
+ let athletes=0,engraved=0,revenue=0,freeOrders=0;const pay={},byEvent={};
+ dashboardOrders.forEach(o=>{
+  const list=o.athletes||[];athletes+=list.length;engraved+=list.filter(a=>a.engraved).length;revenue+=Number(o.total_amount||0);
+  const ps=o.payment_status||'pending';pay[ps]=(pay[ps]||0)+1;
+  if(Number(o.total_amount||0)===0||ps==='free'||ps==='voucher') freeOrders++;
+  const key=o.event_id||'sem-evento';
+  if(!byEvent[key]) byEvent[key]={name:o.events?.name||'Sem evento',orders:0,athletes:0,engraved:0,revenue:0};
+  byEvent[key].orders++;byEvent[key].athletes+=list.length;byEvent[key].engraved+=list.filter(a=>a.engraved).length;byEvent[key].revenue+=Number(o.total_amount||0);
+ });
+ dashOrders.textContent=dashboardOrders.length;dashAthletes.textContent=athletes;dashEngraved.textContent=engraved;dashRevenue.textContent=money(revenue);
+ dashPending.textContent=Math.max(0,athletes-engraved);dashProgress.textContent=pct(engraved,athletes)+'%';dashAvg.textContent=money(dashboardOrders.length?revenue/dashboardOrders.length:0);dashFree.textContent=freeOrders;
+ renderDashboardBars(pay,dashboardOrders.length);renderDashboardEventTable(Object.values(byEvent));renderDashboardRecent();
+}
+function renderDashboardBars(pay,total){
+ const labels={pending:'Pendente',paid:'Pago',free:'Grátis',voucher:'Voucher',received:'Recebido'};
+ const rows=Object.entries(pay).sort((a,b)=>b[1]-a[1]);
+ dashPaymentBars.innerHTML=rows.length?rows.map(([k,v])=>`<div class="barline"><div>${esc(labels[k]||k)}</div><div class="bar"><div style="width:${pct(v,total)}%"></div></div><div class="muted">${v} (${pct(v,total)}%)</div></div>`).join(''):'<p class="muted">Nenhum pedido no período.</p>';
+}
+function renderDashboardEventTable(rows){
+ dashEventTable.innerHTML=rows.length?`<table class="table"><thead><tr><th>Evento</th><th>Pedidos</th><th>Atletas</th><th>Gravados</th><th>Progresso</th><th>Receita</th></tr></thead><tbody>${rows.sort((a,b)=>b.orders-a.orders).map(r=>`<tr><td><b>${esc(r.name)}</b></td><td>${r.orders}</td><td>${r.athletes}</td><td>${r.engraved}</td><td>${pct(r.engraved,r.athletes)}%</td><td>${money(r.revenue)}</td></tr>`).join('')}</tbody></table>`:'<p class="muted">Nenhum evento com pedidos.</p>';
+}
+function renderDashboardRecent(){
+ dashRecentTable.innerHTML=dashboardOrders.length?`<table class="table"><thead><tr><th>Pedido</th><th>Evento</th><th>Cliente</th><th>Atletas</th><th>Status</th><th>Total</th></tr></thead><tbody>${dashboardOrders.slice(0,12).map(o=>`<tr><td><b>${esc(o.order_code||o.id)}</b></td><td>${esc(o.events?.name||'')}</td><td>${esc(o.customer_name||'')}</td><td>${(o.athletes||[]).length}</td><td>${esc(o.payment_status||'pendente')}</td><td>${money(o.total_amount)}</td></tr>`).join('')}</tbody></table>`:'<p class="muted">Nenhum pedido recente.</p>';
+}
+function exportDashboardCSV(){
+ const lines=[['Pedido','Evento','Cliente','WhatsApp','Pagamento','Total','Atletas','Gravados','Criado em']];
+ dashboardOrders.forEach(o=>lines.push([o.order_code||o.id,o.events?.name||'',o.customer_name||'',o.customer_phone||'',o.payment_status||'',String(Number(o.total_amount||0)).replace('.',','),(o.athletes||[]).length,(o.athletes||[]).filter(a=>a.engraved).length,o.created_at||'']));
+ const csv=lines.map(r=>r.map(c=>`"${String(c).replaceAll('"','""')}"`).join(';')).join('\n');
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dashboard-dot.csv';a.click();URL.revokeObjectURL(a.href);
 }
 
 async function loadArchived(){

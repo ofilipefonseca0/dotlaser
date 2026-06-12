@@ -1,21 +1,29 @@
-DOT. LASER MVP v7.4
+dot. laser - v8.1 Dashboard integrado ao admin
 
-Novidades:
-- Área Cupons de desconto no admin.html
-- Criar/listar/ativar/desativar cupons
-- Área Vouchers de assessoria no admin.html
-- Criar/listar/ativar/desativar vouchers
+Domínios sugeridos:
+- Página pública/atleta: https://www.dotlaser.com.br
+- Painel administrativo: https://admin.dotlaser.com.br/admin.html
+- Painel operacional: https://painel.dotlaser.com.br/painel.html
 
-Como atualizar:
-1. Rode schema-v74.sql no Supabase > SQL Editor > New Query > Run.
-2. Substitua no GitHub:
-   - admin.html
-   - schema-v74.sql
-   - README.txt
-3. Aguarde a Vercel atualizar.
-4. Acesse admin.html com usuário admin.
+Arquivos para subir no GitHub:
+- index.html
+- login.html
+- painel.html
+- admin.html
+- schema-v8.sql
+- README.txt
+
+Supabase:
+1. Rode schema-v8.sql no SQL Editor.
+2. Ele apenas recarrega o cache do Supabase/PostgREST; não altera tabelas.
+
+Mudanças desta versão:
+- Dashboard operacional foi integrado dentro do admin.html.
+- Removida a necessidade de acessar dashboard.html separado.
+- Botão "Dashboard" no topo do admin leva para a seção interna.
+- Botão "Painel operacional" no admin aponta para https://painel.dotlaser.com.br/painel.html.
+- Dashboard continua visível apenas para usuários com role admin.
+- Mantém: eventos, cupons, vouchers, arquivados e exclusões com confirmação.
 
 Observação:
-- Cupom percentual: tipo Percentual, valor 10 = 10% OFF.
-- Cupom fixo: tipo Valor fixo, valor 5 = R$ 5,00 OFF.
-- Voucher: código gratuito por assessoria/equipe, com limite de usos.
+Se quiser manter compatibilidade temporária, você pode deixar dashboard.html no GitHub, mas ele não é mais necessário para o fluxo principal.
