@@ -1,5 +1,5 @@
 {
-  "rewrites": [
+  "redirects": [
     {
       "source": "/",
       "has": [
@@ -8,7 +8,8 @@
           "value": "painel.dotlaser.com.br"
         }
       ],
-      "destination": "/painel.html"
+      "destination": "/painel.html",
+      "permanent": false
     },
     {
       "source": "/",
@@ -18,7 +19,8 @@
           "value": "admin.dotlaser.com.br"
         }
       ],
-      "destination": "/admin.html"
+      "destination": "/admin.html",
+      "permanent": false
     }
   ]
 }
